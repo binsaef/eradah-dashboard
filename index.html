@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة إرادة التحليلية - Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3a5c;
+    --primary-light: #2563a8;
+    --accent: #00c9a7;
+    --accent2: #f59e0b;
+    --accent3: #ef4444;
+    --accent4: #8b5cf6;
+    --bg: #0d1b2a;
+    --bg2: #112240;
+    --card: #16305a;
+    --card2: #1e3a6e;
+    --border: rgba(0,201,167,0.18);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --radius: 16px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, #0a2540 60%, #0d1b2a 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 24px rgba(0,201,167,0.15);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), #00a887);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(0,201,167,0.4);
+  }
+  .logo-text h1 { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+  .logo-text p { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 1px; }
+  .header-meta {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,201,167,0.1);
+    border: 1px solid rgba(0,201,167,0.3);
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; color: var(--accent); font-weight: 600;
+  }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  .date-badge { font-size:13px; color:var(--text-muted); }
+
+  /* ===== NAV TABS ===== */
+  .nav-tabs {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ===== MAIN ===== */
+  .main {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+
+  /* ===== SECTION ===== */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: var(--bg2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .filter-label { font-size: 13px; font-weight: 700; color: var(--accent); white-space:nowrap; }
+  .filter-select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s;
+    direction: rtl;
+  }
+  .filter-select:focus { border-color: var(--accent); }
+  .filter-btn {
+    background: linear-gradient(135deg, var(--accent), #00a887);
+    color: #0d1b2a;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .filter-btn:hover { opacity: .85; }
+
+  /* ===== KPI GRID ===== */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 0 0 0 80px;
+    opacity: .08;
+  }
+  .kpi-card.green::before { background: var(--accent); }
+  .kpi-card.amber::before { background: var(--accent2); }
+  .kpi-card.red::before { background: var(--accent3); }
+  .kpi-card.purple::before { background: var(--accent4); }
+  .kpi-card.blue::before { background: var(--primary-light); }
+
+  .kpi-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .kpi-card.green .kpi-icon { background: rgba(0,201,167,.15); }
+  .kpi-card.amber .kpi-icon { background: rgba(245,158,11,.15); }
+  .kpi-card.red .kpi-icon { background: rgba(239,68,68,.15); }
+  .kpi-card.purple .kpi-icon { background: rgba(139,92,246,.15); }
+  .kpi-card.blue .kpi-icon { background: rgba(37,99,168,.15); }
+
+  .kpi-value {
+    font-size: 36px; font-weight: 900; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-card.green .kpi-value { color: var(--accent); }
+  .kpi-card.amber .kpi-value { color: var(--accent2); }
+  .kpi-card.red .kpi-value { color: var(--accent3); }
+  .kpi-card.purple .kpi-value { color: var(--accent4); }
+  .kpi-card.blue .kpi-value { color: #60a5fa; }
+
+  .kpi-label { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+  .kpi-sub { font-size: 11px; color: var(--text-muted); }
+  .kpi-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 10px; font-weight: 700; margin-top: 6px;
+  }
+  .badge-up { background: rgba(0,201,167,.15); color: var(--accent); }
+  .badge-warn { background: rgba(245,158,11,.15); color: var(--accent2); }
+  .badge-down { background: rgba(239,68,68,.15); color: var(--accent3); }
+
+  /* ===== CHARTS GRID ===== */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    position: relative;
+  }
+  .col-4 { grid-column: span 4; }
+  .col-5 { grid-column: span 5; }
+  .col-6 { grid-column: span 6; }
+  .col-7 { grid-column: span 7; }
+  .col-8 { grid-column: span 8; }
+  .col-12 { grid-column: span 12; }
+
+  .chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .chart-title {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-title-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .chart-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .chart-type-toggle {
+    display: flex; gap: 4px;
+  }
+  .toggle-btn {
+    background: var(--bg2); color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; font-size: 11px; cursor: pointer;
+    font-family: 'Cairo', sans-serif; transition: all .2s;
+  }
+  .toggle-btn.active { background: var(--accent); color: #0d1b2a; border-color: var(--accent); font-weight: 700; }
+  .chart-wrap { position: relative; }
+
+  /* ===== TABLE ===== */
+  .data-table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr { background: var(--bg); }
+  thead th {
+    padding: 12px 14px;
+    text-align: right;
+    font-size: 12px; font-weight: 700;
+    color: var(--accent);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background .15s;
+  }
+  tbody tr:hover { background: rgba(0,201,167,0.04); }
+  tbody td {
+    padding: 11px 14px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .pill-green { background: rgba(0,201,167,.15); color: var(--accent); }
+  .pill-amber { background: rgba(245,158,11,.15); color: var(--accent2); }
+  .pill-red { background: rgba(239,68,68,.15); color: var(--accent3); }
+  .pill-purple { background: rgba(139,92,246,.15); color: var(--accent4); }
+  .pill-blue { background: rgba(96,165,250,.15); color: #60a5fa; }
+
+  /* ===== PROGRESS BARS ===== */
+  .progress-list { display: flex; flex-direction: column; gap: 14px; }
+  .progress-item {}
+  .progress-meta { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+  .progress-name { color: var(--text); font-weight: 600; }
+  .progress-val { color: var(--text-muted); font-size: 12px; }
+  .progress-bar-bg {
+    height: 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  /* ===== GAUGE / DONUT ===== */
+  .gauge-wrap {
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .gauge-center-text {
+    position: absolute;
+    text-align: center;
+  }
+  .gauge-value { font-size: 28px; font-weight: 900; }
+  .gauge-label { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== SUMMARY STATS ===== */
+  .stat-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .stat-box {
+    flex: 1; min-width: 120px;
+    background: var(--bg2); border-radius: 10px;
+    padding: 14px; text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-box-val { font-size: 22px; font-weight: 900; }
+  .stat-box-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title {
+    font-size: 22px; font-weight: 900; color: var(--text);
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content:''; flex:1; height:1px; background: var(--border);
+  }
+
+  /* ===== CENTER COMPARISON ===== */
+  .center-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .center-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    border-top: 3px solid;
+    transition: transform .2s;
+  }
+  .center-card:hover { transform: translateY(-3px); }
+  .center-name { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
+  .center-stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+  .center-stat:last-child { border-bottom: none; }
+  .center-stat-lbl { color: var(--text-muted); }
+  .center-stat-val { font-weight: 700; }
+
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:1200px) {
+    .col-4 { grid-column: span 6; }
+    .col-5 { grid-column: span 6; }
+    .col-7 { grid-column: span 6; }
+    .col-8 { grid-column: span 12; }
+  }
+  @media(max-width:768px) {
+    .main { padding: 16px; }
+    .charts-grid > * { grid-column: span 12 !important; }
+    .header { padding: 0 16px; }
+    .nav-tabs { padding: 0 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--card2); border-radius: 3px; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .section.active > * { animation: fadeUp .35s ease forwards; }
+  .section.active .kpi-card:nth-child(1){animation-delay:.02s}
+  .section.active .kpi-card:nth-child(2){animation-delay:.06s}
+  .section.active .kpi-card:nth-child(3){animation-delay:.10s}
+  .section.active .kpi-card:nth-child(4){animation-delay:.14s}
+  .section.active .kpi-card:nth-child(5){animation-delay:.18s}
+
+  .insight-box {
+    background: linear-gradient(135deg, rgba(0,201,167,.08), rgba(0,168,135,.04));
+    border: 1px solid rgba(0,201,167,.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .insight-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .insight-text { font-size: 13px; line-height: 1.7; color: var(--text); }
+  .insight-text strong { color: var(--accent); }
+
+  .tooltip-custom {
+    background: var(--bg2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-family: 'Cairo', sans-serif !important;
+    color: var(--text) !important;
+    direction: rtl;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🌟</div>
+      <div class="logo-text">
+        <h1>جمعية إرادة الخيرية</h1>
+        <p>لوحة المؤشرات التحليلية — ERADAH ANALYTICS</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        بيانات حية
+      </div>
+      <div class="date-badge" id="currentDate"></div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showSection('overview','overview-tab')">📊 نظرة عامة</button>
+  <button class="nav-tab" onclick="showSection('beneficiaries','ben-tab')">👤 المستفيدون</button>
+  <button class="nav-tab" onclick="showSection('employees','emp-tab')">👥 الموظفون</button>
+  <button class="nav-tab" onclick="showSection('sessions','ses-tab')">📋 الجلسات</button>
+  <button class="nav-tab" onclick="showSection('financial','fin-tab')">💰 التحصيل المالي</button>
+  <button class="nav-tab" onclick="showSection('centers','cen-tab')">🏢 مقارنة المراكز</button>
+  <button class="nav-tab" onclick="showSection('admin','adm-tab')">⚙️ الحالة الإدارية</button>
+  <button class="nav-tab" onclick="showSection('insights','ins-tab')">💡 التوصيات</button>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ======================== OVERVIEW ======================== -->
+<section id="section-overview" class="section active">
+
+  <div class="kpi-grid">
+    <div class="kpi-card green">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-value">200</div>
+      <div class="kpi-label">إجمالي المستفيدين</div>
+      <div class="kpi-badge badge-up">✓ جميعهم مستمرون</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value">105</div>
+      <div class="kpi-label">إجمالي الموظفين</div>
+      <div class="kpi-badge badge-up">✓ 100% على رأس العمل</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-value">140</div>
+      <div class="kpi-label">إجمالي الجلسات</div>
+      <div class="kpi-badge badge-up">122 تمت — 18 ملغاة</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-value">447K</div>
+      <div class="kpi-label">إجمالي التحصيل (ريال)</div>
+      <div class="kpi-badge badge-up">159 سند قبض — 41 إعفاء</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">🚫</div>
+      <div class="kpi-value">80</div>
+      <div class="kpi-label">سجلات الغياب</div>
+      <div class="kpi-badge badge-warn">48 مستفيد — 32 موظف</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">📁</div>
+      <div class="kpi-value">60</div>
+      <div class="kpi-label">قرارات إدارية</div>
+      <div class="kpi-badge badge-warn">42 مستفيد — 18 موظف</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <!-- توزيع المستفيدين حسب المركز -->
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title"><span class="chart-title-dot" style="background:var(--accent)"></span>المستفيدون حسب المركز</div>
+          <div class="chart-subtitle">مقارنة الأعداد بين المراكز الأربعة</div>
+        </div>
+        <div class="chart-type-toggle">
+          <button class="toggle-btn active" onclick="toggleChart('benCenter','bar',this)">📊 أعمدة</button>
+          <button class="toggle-btn" onclick="toggleChart('benCenter','pie',this)">🥧 دائري</button>
+        </div>
+      </div>
+      <canvas id="chart-benCenter" height="220"></canvas>
+    </div>
+
+    <!-- توزيع الموظفين حسب المركز -->
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title"><span class="chart-title-dot" style="background:#60a5fa"></span>الموظفون حسب المركز</div>
+          <div class="chart-subtitle">توزيع الكوادر البشرية</div>
+        </div>
+        <div class="chart-type-toggle">
+          <button class="toggle-btn active" onclick="toggleChart('empCenter','bar',this)">📊 أعمدة</button>
+          <button class="toggle-btn" onclick="toggleChart('empCenter','pie',this)">🥧 دائري</button>
+        </div>
+      </div>
+      <canvas id="chart-empCenter" height="220"></canvas>
+    </div>
+
+    <!-- نسبة المستفيدين حسب الجنس -->
+    <div class="chart-card col-4">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title"><span class="chart-title-dot" style="background:var(--accent4)"></span>توزيع الجنس</div>
+          <div class="chart-subtitle">ذكور مقابل إناث</div>
+        </div>
+      </div>
+      <div style="position:relative; height:200px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="chart-gender" style="max-height:200px"></canvas>
+        <div style="position:absolute; text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:var(--text)">200</div>
+          <div style="font-size:11px;color:var(--text-muted)">مستفيد</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- حالة الجلسات -->
+    <div class="chart-card col-4">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title"><span class="chart-title-dot" style="background:var(--accent2)"></span>حالة الجلسات</div>
+          <div class="chart-subtitle">تمت / ملغاة</div>
+        </div>
+      </div>
+      <div style="position:relative; height:200px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="chart-sessionStatus" style="max-height:200px"></canvas>
+        <div style="position:absolute; text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:var(--accent)">87%</div>
+          <div style="font-size:11px;color:var(--text-muted)">نسبة الإتمام</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- نوع التحصيل -->
+    <div class="chart-card col-4">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title"><span class="chart-title-dot" style="background:var(--accent3)"></span>التحصيل المالي</div>
+          <div class="chart-subtitle">سند قبض / إعفاء</div>
+        </div>
+      </div>
+      <div style="position:relative; height:200px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="chart-payType" style="max-height:200px"></canvas>
+        <div style="position:absolute; text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:var(--accent2)">447K</div>
+          <div style="font-size:11px;color:var(--text-muted)">ريال</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ======================== BENEFICIARIES ======================== -->
+<section id="section-beneficiaries" class="section">
+  <div class="section-title">👤 تحليل المستفيدين</div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <span class="filter-label">🔍 تصفية:</span>
+    <select class="filter-select" id="ben-center-filter" onchange="filterBen()">
+      <option value="all">جميع المراكز</option>
+      <option value="مكة">مكة</option>
+      <option value="نجد">نجد</option>
+      <option value="القدس">القدس</option>
+      <option value="جلمودة">جلمودة</option>
+    </select>
+    <select class="filter-select" id="ben-gender-filter" onchange="filterBen()">
+      <option value="all">الجنس - الكل</option>
+      <option value="ذكر">ذكور</option>
+      <option value="أنثى">إناث</option>
+    </select>
+    <select class="filter-select" id="ben-diag-filter" onchange="filterBen()">
+      <option value="all">التشخيص - الكل</option>
+      <option value="توحد">توحد</option>
+      <option value="تأخر لغوي">تأخر لغوي</option>
+      <option value="إعاقة ذهنية">إعاقة ذهنية</option>
+      <option value="تأخر نمائي">تأخر نمائي</option>
+      <option value="متلازمة داون">متلازمة داون</option>
+      <option value="صعوبات تعلم">صعوبات تعلم</option>
+      <option value="اضطراب فرط الحركة">اضطراب فرط الحركة</option>
+      <option value="شلل دماغي">شلل دماغي</option>
+    </select>
+    <select class="filter-select" id="ben-period-filter" onchange="filterBen()">
+      <option value="all">الفترة - الكل</option>
+      <option value="صباحي">صباحي</option>
+      <option value="مسائي">مسائي</option>
+    </select>
+    <button class="filter-btn" onclick="resetBenFilter()">↺ إعادة تعيين</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="ben-kpis">
+    <div class="kpi-card green">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-value" id="ben-total">200</div>
+      <div class="kpi-label">إجمالي المستفيدين</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👦</div>
+      <div class="kpi-value" id="ben-male">99</div>
+      <div class="kpi-label">ذكور</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">👧</div>
+      <div class="kpi-value" id="ben-female">101</div>
+      <div class="kpi-label">إناث</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-value" id="ben-iq">78</div>
+      <div class="kpi-label">متوسط مستوى IQ</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">💵</div>
+      <div class="kpi-value" id="ben-fee">2,237</div>
+      <div class="kpi-label">متوسط الرسوم (ريال)</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📊 التشخيصات</div>
+      </div>
+      <canvas id="chart-diagFull" height="280"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">🛤️ المسار التعليمي / التأهيلي</div>
+      </div>
+      <canvas id="chart-path" height="280"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📚 نوع البرنامج</div>
+      </div>
+      <canvas id="chart-program" height="200"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">💳 مصادر التمويل</div>
+      </div>
+      <canvas id="chart-feeType" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="chart-card col-12" style="grid-column:span 12">
+    <div class="chart-header">
+      <div class="chart-title">📋 بيانات المستفيدين التفصيلية</div>
+      <div style="font-size:12px;color:var(--text-muted)" id="ben-count-label">عرض: 200 مستفيد</div>
+    </div>
+    <div class="data-table-wrap">
+      <table id="ben-table">
+        <thead>
+          <tr>
+            <th>الرمز</th>
+            <th>الجنس</th>
+            <th>المركز</th>
+            <th>الفترة</th>
+            <th>التشخيص</th>
+            <th>المسار</th>
+            <th>IQ</th>
+            <th>الخدمة</th>
+            <th>البرنامج</th>
+            <th>الرسوم</th>
+            <th>مصدر التمويل</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody id="ben-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== EMPLOYEES ======================== -->
+<section id="section-employees" class="section">
+  <div class="section-title">👥 تحليل الموظفين</div>
+
+  <div class="filter-bar">
+    <span class="filter-label">🔍 تصفية:</span>
+    <select class="filter-select" id="emp-center-filter" onchange="filterEmp()">
+      <option value="all">جميع المراكز</option>
+      <option value="مكة">مكة</option>
+      <option value="نجد">نجد</option>
+      <option value="القدس">القدس</option>
+      <option value="جلمودة">جلمودة</option>
+    </select>
+    <select class="filter-select" id="emp-period-filter" onchange="filterEmp()">
+      <option value="all">الفترة - الكل</option>
+      <option value="صباحي">صباحي</option>
+      <option value="مسائي">مسائي</option>
+    </select>
+    <select class="filter-select" id="emp-role-filter" onchange="filterEmp()">
+      <option value="all">الوظيفة - الكل</option>
+      <option value="أخصائي علاج وظيفي">أخصائي علاج وظيفي</option>
+      <option value="أخصائي نطق">أخصائي نطق</option>
+      <option value="مرشد أسري">مرشد أسري</option>
+      <option value="أخصائي علاج طبيعي">أخصائي علاج طبيعي</option>
+      <option value="ممرض">ممرض</option>
+      <option value="أخصائي اجتماعي">أخصائي اجتماعي</option>
+      <option value="أخصائي تربية خاصة">أخصائي تربية خاصة</option>
+      <option value="أخصائي نفسي">أخصائي نفسي</option>
+      <option value="أخصائي نفسي حركي">أخصائي نفسي حركي</option>
+    </select>
+    <button class="filter-btn" onclick="resetEmpFilter()">↺ إعادة تعيين</button>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value" id="emp-total">105</div>
+      <div class="kpi-label">إجمالي الموظفين</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">☀️</div>
+      <div class="kpi-value" id="emp-morning">53</div>
+      <div class="kpi-label">الفترة الصباحية</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">🌙</div>
+      <div class="kpi-value" id="emp-evening">52</div>
+      <div class="kpi-label">الفترة المسائية</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">🏢</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-label">مراكز نشطة</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">🏅 التوزيع حسب الوظيفة</div>
+      </div>
+      <canvas id="chart-empRole" height="280"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📦 الخدمات الأساسية المسندة</div>
+      </div>
+      <canvas id="chart-empService" height="280"></canvas>
+    </div>
+    <div class="chart-card col-12">
+      <div class="chart-header">
+        <div class="chart-title">📋 بيانات الموظفين</div>
+        <div style="font-size:12px;color:var(--text-muted)" id="emp-count-label">عرض: 105 موظف</div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الرمز</th>
+              <th>الوظيفة</th>
+              <th>التخصص</th>
+              <th>الدور</th>
+              <th>الخدمة</th>
+              <th>المركز</th>
+              <th>الفترة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== SESSIONS ======================== -->
+<section id="section-sessions" class="section">
+  <div class="section-title">📋 تحليل الجلسات</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card amber">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-value">140</div>
+      <div class="kpi-label">إجمالي الجلسات</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-value">122</div>
+      <div class="kpi-label">جلسات تمت</div>
+      <div class="kpi-badge badge-up">87.1%</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">❌</div>
+      <div class="kpi-value">18</div>
+      <div class="kpi-label">جلسات ملغاة</div>
+      <div class="kpi-badge badge-down">12.9%</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-value">112</div>
+      <div class="kpi-label">جلسات فردية</div>
+      <div class="kpi-badge badge-up">80%</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value">28</div>
+      <div class="kpi-label">جلسات جماعية</div>
+      <div class="kpi-badge badge-up">20%</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📊 الجلسات حسب الخدمة</div>
+      </div>
+      <canvas id="chart-sesService" height="260"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">⏰ الجلسات حسب الفترة ونوعها</div>
+      </div>
+      <canvas id="chart-sesPeriod" height="260"></canvas>
+    </div>
+    <div class="chart-card col-12">
+      <div class="chart-header">
+        <div class="chart-title">📋 سجل الجلسات</div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الجلسة</th>
+              <th>التاريخ</th>
+              <th>رقم المستفيد</th>
+              <th>رقم الموظف</th>
+              <th>الخدمة</th>
+              <th>النوع</th>
+              <th>الفترة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="ses-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FINANCIAL ======================== -->
+<section id="section-financial" class="section">
+  <div class="section-title">💰 التحليل المالي</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card green">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-value">447,300</div>
+      <div class="kpi-label">إجمالي التحصيل (ريال)</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">🧾</div>
+      <div class="kpi-value">159</div>
+      <div class="kpi-label">سندات قبض</div>
+      <div class="kpi-badge badge-up">79.5%</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">🎁</div>
+      <div class="kpi-value">41</div>
+      <div class="kpi-label">إعفاءات ممنوحة</div>
+      <div class="kpi-badge badge-warn">20.5%</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-value">2,237</div>
+      <div class="kpi-label">متوسط الرسوم (ريال)</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">💳 طرق الدفع</div>
+      </div>
+      <canvas id="chart-payMethod" height="260"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📦 مصادر التمويل</div>
+      </div>
+      <canvas id="chart-feeTypeFin" height="260"></canvas>
+    </div>
+    <div class="chart-card col-12">
+      <div class="chart-header">
+        <div class="chart-title">📋 سجل التحصيل</div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>رقم السند</th>
+              <th>رقم المستفيد</th>
+              <th>التاريخ</th>
+              <th>المبلغ</th>
+              <th>النوع</th>
+              <th>طريقة الدفع</th>
+            </tr>
+          </thead>
+          <tbody id="fin-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CENTERS ======================== -->
+<section id="section-centers" class="section">
+  <div class="section-title">🏢 مقارنة المراكز</div>
+
+  <div class="center-grid">
+    <div class="center-card" style="border-top-color:#00c9a7">
+      <div class="center-name" style="color:#00c9a7">🏫 مركز مكة</div>
+      <div class="center-stat"><span class="center-stat-lbl">المستفيدون</span><span class="center-stat-val">52</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الموظفون</span><span class="center-stat-val">31</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">النسبة (مستفيد/موظف)</span><span class="center-stat-val">1.68</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة الصباحية</span><span class="center-stat-val">~16</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة المسائية</span><span class="center-stat-val">~15</span></div>
+    </div>
+    <div class="center-card" style="border-top-color:#60a5fa">
+      <div class="center-name" style="color:#60a5fa">🏫 مركز نجد</div>
+      <div class="center-stat"><span class="center-stat-lbl">المستفيدون</span><span class="center-stat-val">51</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الموظفون</span><span class="center-stat-val">23</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">النسبة (مستفيد/موظف)</span><span class="center-stat-val">2.22</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة الصباحية</span><span class="center-stat-val">~12</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة المسائية</span><span class="center-stat-val">~11</span></div>
+    </div>
+    <div class="center-card" style="border-top-color:#f59e0b">
+      <div class="center-name" style="color:#f59e0b">🏫 مركز القدس</div>
+      <div class="center-stat"><span class="center-stat-lbl">المستفيدون</span><span class="center-stat-val">51</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الموظفون</span><span class="center-stat-val">25</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">النسبة (مستفيد/موظف)</span><span class="center-stat-val">2.04</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة الصباحية</span><span class="center-stat-val">~13</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة المسائية</span><span class="center-stat-val">~12</span></div>
+    </div>
+    <div class="center-card" style="border-top-color:#8b5cf6">
+      <div class="center-name" style="color:#8b5cf6">🏫 مركز جلمودة</div>
+      <div class="center-stat"><span class="center-stat-lbl">المستفيدون</span><span class="center-stat-val">46</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الموظفون</span><span class="center-stat-val">26</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">النسبة (مستفيد/موظف)</span><span class="center-stat-val">1.77</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة الصباحية</span><span class="center-stat-val">~12</span></div>
+      <div class="center-stat"><span class="center-stat-lbl">الفترة المسائية</span><span class="center-stat-val">~14</span></div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-12">
+      <div class="chart-header">
+        <div class="chart-title">📊 مقارنة شاملة بين المراكز</div>
+      </div>
+      <canvas id="chart-centerCompare" height="300"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">👤 نسبة مستفيد / موظف لكل مركز</div>
+      </div>
+      <div class="progress-list">
+        <div class="progress-item">
+          <div class="progress-meta">
+            <span class="progress-name">نجد <span style="font-size:11px;color:var(--text-muted)">(أعلى ضغط)</span></span>
+            <span class="progress-val">2.22 مستفيد/موظف</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--accent3),#f87171)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-meta">
+            <span class="progress-name">القدس</span>
+            <span class="progress-val">2.04 مستفيد/موظف</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:92%;background:linear-gradient(90deg,var(--accent2),#fbbf24)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-meta">
+            <span class="progress-name">جلمودة</span>
+            <span class="progress-val">1.77 مستفيد/موظف</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--accent4),#a78bfa)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-meta">
+            <span class="progress-name">مكة <span style="font-size:11px;color:var(--text-muted)">(أفضل نسبة)</span></span>
+            <span class="progress-val">1.68 مستفيد/موظف</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:75%;background:linear-gradient(90deg,var(--accent),#00a887)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📊 حصة كل مركز من الجلسات</div>
+      </div>
+      <div style="height:220px;display:flex;align-items:center;justify-content:center;position:relative">
+        <canvas id="chart-centerSes"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== ADMIN ======================== -->
+<section id="section-admin" class="section">
+  <div class="section-title">⚙️ الحالة الإدارية والغياب</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card red">
+      <div class="kpi-icon">🚫</div>
+      <div class="kpi-value">80</div>
+      <div class="kpi-label">إجمالي سجلات الغياب</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-value">48</div>
+      <div class="kpi-label">غياب المستفيدين</div>
+      <div class="kpi-badge badge-warn">60%</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-value">32</div>
+      <div class="kpi-label">غياب الموظفين</div>
+      <div class="kpi-badge badge-up">40%</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">📁</div>
+      <div class="kpi-value">60</div>
+      <div class="kpi-label">قرارات إدارية</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">⏸️</div>
+      <div class="kpi-value">15</div>
+      <div class="kpi-label">حالات متوقفة</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">🚫 أسباب الغياب</div>
+      </div>
+      <canvas id="chart-absReason" height="260"></canvas>
+    </div>
+    <div class="chart-card col-6">
+      <div class="chart-header">
+        <div class="chart-title">📁 أنواع القرارات الإدارية</div>
+      </div>
+      <canvas id="chart-adminStatus" height="260"></canvas>
+    </div>
+    <div class="chart-card col-12">
+      <div class="chart-header">
+        <div class="chart-title">📋 سجل الحالة الإدارية</div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الرمز</th>
+              <th>نوع الجهة</th>
+              <th>رقم الجهة</th>
+              <th>التاريخ</th>
+              <th>الحالة</th>
+              <th>السبب</th>
+            </tr>
+          </thead>
+          <tbody id="adm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== INSIGHTS ======================== -->
+<section id="section-insights" class="section">
+  <div class="section-title">💡 التوصيات والرؤى التحليلية</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+    <div>
+      <h3 style="color:var(--accent);font-size:15px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)">✅ نقاط القوة</h3>
+      <div class="insight-box">
+        <div class="insight-icon">🌟</div>
+        <div class="insight-text"><strong>100% من الموظفين على رأس العمل</strong> — لا توجد إجازات غير مبررة أو شواغر وظيفية، مما يعكس استقراراً تشغيلياً ممتازاً في جميع المراكز.</div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-icon">✅</div>
+        <div class="insight-text"><strong>نسبة إتمام الجلسات 87%</strong> — معدل عالٍ يدل على التزام المستفيدين واحترافية الكوادر في تقديم الخدمة.</div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-icon">💰</div>
+        <div class="insight-text"><strong>تنوع مصادر التمويل</strong> — الجمعية تستفيد من 5 مصادر تمويل مختلفة (أفراد، شؤون، سابك، تأمين، حديد) مما يحقق استدامة مالية.</div>
+      </div>
+      <div class="insight-box">
+        <div class="insight-icon">⚖️</div>
+        <div class="insight-text"><strong>توازن الجنسين</strong> — 99 ذكر و101 أنثى، أي توزيع شبه متساوٍ يعكس شمولية الخدمة لكلا الجنسين.</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="color:var(--accent2);font-size:15px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)">⚠️ فرص التحسين</h3>
+      <div class="insight-box" style="border-color:rgba(245,158,11,.25);background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02))">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-text"><strong>مركز نجد يحتاج دعماً إضافياً</strong> — أعلى نسبة مستفيد/موظف (2.22) مقارنة بالمراكز الأخرى. يُوصى بمراجعة التوزيع الوظيفي أو استقطاب كوادر إضافية.</div>
+      </div>
+      <div class="insight-box" style="border-color:rgba(245,158,11,.25);background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02))">
+        <div class="insight-icon">📊</div>
+        <div class="insight-text"><strong>نسبة الإعفاء 20.5%</strong> — حوالي خُمس المستفيدين يتلقون خدمة دون تحصيل. يُنصح بمراجعة آلية منح الإعفاءات وربطها بمعايير موثقة.</div>
+      </div>
+      <div class="insight-box" style="border-color:rgba(245,158,11,.25);background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02))">
+        <div class="insight-icon">🚫</div>
+        <div class="insight-text"><strong>12.9% جلسات ملغاة</strong> — تحليل أسباب الإلغاء والفترات الأكثر تأثراً قد يساعد في تقليل هذه النسبة وتحسين الكفاءة.</div>
+      </div>
+      <div class="insight-box" style="border-color:rgba(245,158,11,.25);background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02))">
+        <div class="insight-icon">🏥</div>
+        <div class="insight-text"><strong>15 حالة متوقفة</strong> — تستوجب متابعة فردية ووضع خطط لإعادة الانتظام أو تحديد أسباب الانقطاع المتكرر.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card col-12" style="grid-column:span 12;margin-bottom:20px">
+    <h3 style="color:var(--text);font-size:15px;margin-bottom:16px">🎯 مؤشرات الأداء الرئيسية (KPIs) — ملخص تنفيذي</h3>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent)">87%</div>
+        <div class="stat-box-lbl">نسبة إتمام الجلسات</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:#60a5fa">100%</div>
+        <div class="stat-box-lbl">الاستقرار الوظيفي</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent2)">1.90</div>
+        <div class="stat-box-lbl">متوسط نسبة م/موظف</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent4)">79.5%</div>
+        <div class="stat-box-lbl">تحصيل فعلي (سند)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent3)">12.9%</div>
+        <div class="stat-box-lbl">معدل إلغاء الجلسات</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent2)">78</div>
+        <div class="stat-box-lbl">متوسط IQ المستفيدين</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:var(--accent)">2,237</div>
+        <div class="stat-box-lbl">متوسط الرسوم (ريال)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val" style="color:#f87171">25%</div>
+        <div class="stat-box-lbl">نسبة الغياب للكل</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ======================= DATA =======================
+const DATA = {
+  beneficiaries: [
+    {id:'B001',gender:'أنثى',center:'جلمودة',period:'مسائي',diagnosis:'توحد',path:'توحد',iq:75,service:'S001',program:'فصول',fee:2000,feeType:'الشؤون الاجتماعية',status:'مستمر'},
+    {id:'B002',gender:'أنثى',center:'جلمودة',period:'مسائي',diagnosis:'تأخر لغوي',path:'تربية',iq:85,service:'S001',program:'جلسات فردية',fee:2500,feeType:'أفراد',status:'مستمر'},
+    {id:'B003',gender:'أنثى',center:'نجد',period:'مسائي',diagnosis:'إعاقة ذهنية',path:'تأهيل',iq:60,service:'S002',program:'فصول',fee:3000,feeType:'شركة سابك',status:'مستمر'},
+    {id:'B004',gender:'ذكر',center:'جلمودة',period:'مسائي',diagnosis:'توحد',path:'توحد',iq:70,service:'S003',program:'جلسات فردية',fee:2000,feeType:'تأمين / شركات',status:'مستمر'},
+    {id:'B005',gender:'أنثى',center:'مكة',period:'صباحي',diagnosis:'تأخر نمائي',path:'تربية',iq:90,service:'S001',program:'كلاهما',fee:1500,feeType:'أفراد',status:'مستمر'},
+  ],
+  employees: [
+    {id:'E001',role:'أخصائي تربية خاصة',spec:'تربية خاصة',current_role:'معلم',service:'S001',center:'مكة',period:'صباحي',status:'على رأس العمل'},
+    {id:'E002',role:'أخصائي نطق',spec:'نطق وتواصل',current_role:'معالج',service:'S002',center:'مكة',period:'صباحي',status:'على رأس العمل'},
+    {id:'E003',role:'أخصائي نطق',spec:'نطق وتواصل',current_role:'معالج',service:'S002',center:'نجد',period:'مسائي',status:'على رأس العمل'},
+    {id:'E004',role:'أخصائي علاج وظيفي',spec:'علاج وظيفي',current_role:'معالج',service:'S004',center:'القدس',period:'صباحي',status:'على رأس العمل'},
+    {id:'E005',role:'أخصائي نفسي',spec:'تأهيل نفسي',current_role:'معالج',service:'S005',center:'مكة',period:'مسائي',status:'على رأس العمل'},
+  ],
+  sessions: [
+    {id:'SS001',date:'2026-04-03',ben:'B002',emp:'E066',service:'S001',type:'جماعية',period:'مسائي',status:'ملغاة'},
+    {id:'SS002',date:'2026-03-23',ben:'B004',emp:'E061',service:'S003',type:'فردية',period:'مسائي',status:'تمت'},
+    {id:'SS003',date:'2026-03-12',ben:'B005',emp:'E001',service:'S001',type:'فردية',period:'صباحي',status:'تمت'},
+    {id:'SS004',date:'2026-03-01',ben:'B007',emp:'E001',service:'S001',type:'فردية',period:'صباحي',status:'تمت'},
+    {id:'SS005',date:'2026-02-18',ben:'B010',emp:'E030',service:'S004',type:'فردية',period:'صباحي',status:'تمت'},
+  ],
+  payments: [
+    {id:'P001',ben:'B001',date:'2026-04-20',amount:2000,type:'إعفاء',method:'إعفاء حكومي'},
+    {id:'P002',ben:'B002',date:'2026-04-15',amount:2500,type:'سند قبض',method:'تحويل'},
+    {id:'P003',ben:'B003',date:'2026-04-10',amount:3000,type:'سند قبض',method:'جهة داعمة'},
+    {id:'P004',ben:'B004',date:'2026-04-05',amount:2000,type:'سند قبض',method:'جهة داعمة'},
+    {id:'P005',ben:'B005',date:'2026-03-31',amount:1500,type:'سند قبض',method:'تحويل'},
+  ],
+  adminStatus: [
+    {id:'ST001',entity:'Beneficiary',entityId:'B008',date:'2026-04-13',status:'متوقف',reason:'ظروف صحية'},
+    {id:'ST002',entity:'Beneficiary',entityId:'B021',date:'2026-04-04',status:'إعادة قيد',reason:'استئناف الخدمة'},
+    {id:'ST003',entity:'Beneficiary',entityId:'B034',date:'2026-03-26',status:'طي قيد',reason:'انقطاع طويل'},
+    {id:'ST004',entity:'Beneficiary',entityId:'B047',date:'2026-03-17',status:'تخرج',reason:'تحسن الحالة'},
+    {id:'ST005',entity:'Beneficiary',entityId:'B060',date:'2026-03-08',status:'متوقف',reason:'ظروف صحية'},
+  ]
+};
+
+// ======================= CHART CONFIG =======================
+Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
+Chart.defaults.color = '#94a3b8';
+
+const COLORS = {
+  green: '#00c9a7', blue: '#60a5fa', amber: '#f59e0b',
+  red: '#ef4444', purple: '#8b5cf6', teal: '#14b8a6',
+  orange: '#f97316', pink: '#ec4899', lime: '#84cc16'
+};
+const PALETTE = Object.values(COLORS);
+
+const chartInstances = {};
+
+function makeChart(id, type, labels, datasets, opts={}) {
+  const ctx = document.getElementById('chart-' + id);
+  if (!ctx) return;
+  if (chartInstances[id]) chartInstances[id].destroy();
+  chartInstances[id] = new Chart(ctx, {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: type === 'doughnut' || type === 'pie' ? false : true,
+      plugins: {
+        legend: {
+          position: type === 'doughnut' || type === 'pie' ? 'bottom' : 'top',
+          labels: { boxWidth: 12, padding: 16, font: { size: 12, family: "'Cairo'" } }
+        },
+        tooltip: { rtl: true }
+      },
+      scales: (type === 'bar' || type === 'line') ? {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 12 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 12 } } }
+      } : undefined,
+      ...opts
+    }
+  });
+}
+
+function toggleChart(id, newType, btn) {
+  const chart = chartInstances[id];
+  if (!chart) return;
+  btn.closest('.chart-type-toggle').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  chart.config.type = newType;
+  chart.update();
+}
+
+// ======================= LIVE DATA STATE =======================
+// ضع رابط Web App الخاص بك هنا بعد النشر
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4xFajgNmXkgxTSMdLsvyEtjygSVazxjccR8m_hXewiRWzBDldl722jqcvNiNtZRQY/exec";
+// مثال:
+// const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfy.../exec";
+
+let DB = {           // قاعدة البيانات المركزية — تُملأ من Sheets أو تبقى تجريبية
+  beneficiaries: [], employees: [], sessions: [],
+  payments: [], absence: [], adminStatus: [],
+  summary: null, isLive: false, lastLoaded: null
+};
+
+// ── واجهة حالة الاتصال ─────────────────────────────────────────
+function setStatus(state) {
+  const badge = document.getElementById('connectionBadge');
+  if (!badge) return;
+  const S = {
+    loading: { html:'<span style="animation:spin .8s linear infinite;display:inline-block">⟳</span> جارٍ التحميل من Sheets...', bg:'rgba(96,165,250,.15)', color:'#60a5fa', border:'rgba(96,165,250,.3)' },
+    live:    { html:'🟢 متصل • Google Sheets', bg:'rgba(0,201,167,.15)', color:'#00c9a7', border:'rgba(0,201,167,.3)' },
+    demo:    { html:'🟡 وضع تجريبي — أضف رابط API', bg:'rgba(245,158,11,.12)', color:'#f59e0b', border:'rgba(245,158,11,.3)' },
+    error:   { html:'🔴 فشل الاتصال — انقر للإعادة', bg:'rgba(239,68,68,.12)', color:'#ef4444', border:'rgba(239,68,68,.3)' }
+  };
+  const s = S[state] || S.demo;
+  badge.innerHTML = s.html;
+  badge.style.background = s.bg;
+  badge.style.color = s.color;
+  badge.style.border = `1px solid ${s.border}`;
+  if (DB.lastLoaded && state === 'live') {
+    badge.title = `آخر تحديث: ${DB.lastLoaded}`;
+  }
+}
+
+// ── جلب كل البيانات من Apps Script ────────────────────────────
+async function loadFromSheets() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_')) {
+    loadDemoData(); setStatus('demo'); return;
+  }
+  setStatus('loading');
+
+  // ── JSONP: الطريقة الوحيدة الموثوقة مع Apps Script من GitHub Pages ──
+  return new Promise((resolve) => {
+    const cbName = '_gsCallback_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      console.warn('Apps Script timeout');
+      if (!DB.isLive) loadDemoData();
+      setStatus('error');
+      resolve();
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = function(json) {
+      cleanup();
+      try {
+        if (json.status !== 'ok') throw new Error(json.message || 'خطأ');
+        const d = json.data;
+        DB.beneficiaries = mapBeneficiaries(d.beneficiaries || []);
+        DB.employees     = mapEmployees(d.employees     || []);
+        DB.sessions      = mapSessions(d.sessions       || []);
+        DB.payments      = mapPayments(d.payments       || []);
+        DB.absence       = d.absence     || [];
+        DB.adminStatus   = d.adminStatus || [];
+        DB.summary       = d._summary    || null;
+        DB.isLive        = true;
+        DB.lastLoaded    = new Date().toLocaleTimeString('ar-SA');
+        setStatus('live');
+        refreshAll();
+      } catch(err) {
+        console.error('Sheets parse error:', err);
+        if (!DB.isLive) loadDemoData();
+        setStatus('error');
+      }
+      resolve();
+    };
+
+    script.src = `${APPS_SCRIPT_URL}?action=all&callback=${cbName}&_=${Date.now()}`;
+    script.onerror = () => {
+      cleanup();
+      if (!DB.isLive) loadDemoData();
+      setStatus('error');
+      resolve();
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ── تحميل البيانات التجريبية ────────────────────────────────────
+function loadDemoData() {
+  DB.beneficiaries = buildDemoBen();
+  DB.employees     = buildDemoEmp();
+  DB.sessions      = buildDemoSessions();
+  DB.payments      = buildDemoPayments();
+  DB.absence       = buildDemoAbsence();
+  DB.adminStatus   = buildDemoAdmin();
+  DB.isLive = false;
+}
+
+// ── تحديث كامل لجميع الرسوم ────────────────────────────────────
+function refreshAll() {
+  initOverviewCharts();
+  updateOverviewKPIs();
+  // إعادة رسم القسم النشط
+  const active = document.querySelector('.section.active');
+  if (active) {
+    const id = active.id.replace('section-','');
+    refreshSection(id);
+  }
+}
+
+function refreshSection(name) {
+  if (name==='beneficiaries') { initBenCharts(); renderBenTable(DB.beneficiaries); }
+  if (name==='employees')     { initEmpCharts(); renderEmpTable(DB.employees); }
+  if (name==='sessions')      { initSessionCharts(); renderSesTable(); }
+  if (name==='financial')     { initFinCharts(); renderFinTable(); }
+  if (name==='centers')       { initCenterCharts(); }
+  if (name==='admin')         { initAdminCharts(); renderAdmTable(); }
+}
+
+// ── تحديث KPIs الرئيسية ─────────────────────────────────────────
+function updateOverviewKPIs() {
+  const ben = DB.beneficiaries, emp = DB.employees,
+        ses = DB.sessions,      pay = DB.payments,
+        abs = DB.absence,       adm = DB.adminStatus;
+
+  const cards = document.querySelectorAll('#section-overview .kpi-grid .kpi-card');
+  const setCard = (i, val, sub) => {
+    if (!cards[i]) return;
+    cards[i].querySelector('.kpi-value').textContent = val;
+    if (sub) {
+      const badge = cards[i].querySelector('.kpi-badge');
+      if (badge) badge.textContent = sub;
+    }
+  };
+
+  const sesDone = ses.filter(s=>s.status==='تمت').length;
+  const sesCancelled = ses.filter(s=>s.status==='ملغاة').length;
+  const totalPay = pay.reduce((s,p)=>s+(p.amount||0),0);
+  const payReceipt = pay.filter(p=>p.type==='سند قبض').length;
+  const payExempt  = pay.filter(p=>p.type==='إعفاء').length;
+  const absBen = abs.filter(a=>a.Entity_Type==='Beneficiary').length;
+  const absEmp = abs.filter(a=>a.Entity_Type==='Employee').length;
+  const admBen = adm.filter(a=>a.Entity_Type==='Beneficiary').length;
+  const admEmp = adm.filter(a=>a.Entity_Type==='Employee').length;
+
+  setCard(0, ben.length, '✓ جميعهم مستمرون');
+  setCard(1, emp.length, '✓ 100% على رأس العمل');
+  setCard(2, ses.length, `${sesDone} تمت — ${sesCancelled} ملغاة`);
+  setCard(3, Math.round(totalPay/1000)+'K', `${payReceipt} سند قبض — ${payExempt} إعفاء`);
+  setCard(4, abs.length, `${absBen} مستفيد — ${absEmp} موظف`);
+  setCard(5, adm.length, `${admBen} مستفيد — ${admEmp} موظف`);
+}
+
+// ======================= DATA MAPPERS =======================
+function mapBeneficiaries(rows) {
+  return rows.map(r => ({
+    id:        r['Beneficiary_ID'] || r['ID'] || '',
+    gender:    r['الجنس'] || '',
+    center:    r['المركز'] || '',
+    period:    r['الفترة'] || '',
+    diagnosis: r['التشخيص'] || '',
+    path:      r['المسار'] || '',
+    iq:        Number(r['IQ']) || 0,
+    service:   r['الخدمة_الأساسية'] || '',
+    program:   r['نوع البرنامج الأساسي'] || '',
+    fee:       Number(r['مبلغ_الرسوم']) || 0,
+    feeType:   r['نوع_الرسوم'] || '',
+    status:    r['الحالة'] || 'مستمر'
+  }));
+}
+function mapEmployees(rows) {
+  return rows.map(r => ({
+    id:           r['Employee_ID'] || '',
+    role:         r['الوظيفة'] || '',
+    spec:         r['التخصص'] || '',
+    current_role: r['الدور_الحالي'] || '',
+    service:      r['الخدمة_الأساسية'] || '',
+    center:       r['المركز'] || '',
+    period:       r['الفترة'] || '',
+    status:       r['الحالة_الوظيفية'] || 'على رأس العمل'
+  }));
+}
+function mapSessions(rows) {
+  return rows.map(r => ({
+    id:      r['Session_ID'] || '',
+    date:    r['التاريخ'] || '',
+    ben:     r['رقم_المستفيد'] || '',
+    emp:     r['رقم_الموظف'] || '',
+    service: r['رقم_الخدمة'] || '',
+    type:    r['نوع_الجلسة'] || '',
+    period:  r['الفترة'] || '',
+    status:  r['الحالة'] || ''
+  }));
+}
+function mapPayments(rows) {
+  return rows.map(r => ({
+    id:     r['Payment_ID'] || '',
+    ben:    r['رقم_المستفيد'] || '',
+    date:   r['التاريخ'] || '',
+    amount: Number(r['المبلغ']) || 0,
+    type:   r['نوع_التحصيل'] || '',
+    method: r['طريقة_الدفع'] || ''
+  }));
+}
+
+// ======================= DEMO DATA BUILDERS =======================
+function buildDemoBen() {
+  const rows = [
+    {id:'B001',gender:'أنثى',center:'جلمودة',period:'مسائي',diagnosis:'توحد',path:'توحد',iq:75,service:'S001',program:'فصول',fee:2000,feeType:'الشؤون الاجتماعية',status:'مستمر'},
+    {id:'B002',gender:'أنثى',center:'جلمودة',period:'مسائي',diagnosis:'تأخر لغوي',path:'تربية',iq:85,service:'S001',program:'جلسات فردية',fee:2500,feeType:'أفراد',status:'مستمر'},
+    {id:'B003',gender:'أنثى',center:'نجد',period:'مسائي',diagnosis:'إعاقة ذهنية',path:'تأهيل',iq:60,service:'S002',program:'فصول',fee:3000,feeType:'شركة سابك',status:'مستمر'},
+    {id:'B004',gender:'ذكر',center:'جلمودة',period:'مسائي',diagnosis:'توحد',path:'توحد',iq:70,service:'S003',program:'جلسات فردية',fee:2000,feeType:'تأمين / شركات',status:'مستمر'},
+    {id:'B005',gender:'أنثى',center:'مكة',period:'صباحي',diagnosis:'تأخر نمائي',path:'تربية',iq:90,service:'S001',program:'كلاهما',fee:1500,feeType:'أفراد',status:'مستمر'},
+  ];
+  const ctrs=['مكة','نجد','القدس','جلمودة'],dgs=['توحد','تأخر لغوي','إعاقة ذهنية','تأخر نمائي','متلازمة داون','صعوبات تعلم','اضطراب فرط الحركة','شلل دماغي'],
+        prgs=['فصول','جلسات فردية','كلاهما'],fts=['أفراد','الشؤون الاجتماعية','شركة سابك','تأمين / شركات','شركة حديد'],
+        srvs=['S001','S002','S003','S004','S005'],gds=['ذكر','أنثى'];
+  for(let i=6;i<=200;i++){
+    const d=dgs[(i-1)%8];
+    rows.push({id:'B'+String(i).padStart(3,'0'),gender:gds[i%2],center:ctrs[(i-1)%4],period:i%2===0?'صباحي':'مسائي',
+      diagnosis:d,path:d==='توحد'?'توحد':i%3===0?'تأهيل':'تربية',iq:Math.floor(50+Math.random()*60),
+      service:srvs[i%5],program:prgs[i%3],fee:[1500,2000,2500,3000][i%4],feeType:fts[i%5],status:'مستمر'});
+  }
+  return rows;
+}
+function buildDemoEmp() {
+  const rl=['أخصائي علاج وظيفي','أخصائي نطق','مرشد أسري','أخصائي علاج طبيعي','ممرض','أخصائي اجتماعي','أخصائي تربية خاصة','أخصائي نفسي','أخصائي نفسي حركي'];
+  const sp=['علاج وظيفي','نطق وتواصل','إرشاد أسري','علاج طبيعي','تمريض','اجتماعي','تربية خاصة','نفسي','نفسي حركي'];
+  const ctrs=['مكة','نجد','القدس','جلمودة'];
+  const arr=[];
+  for(let i=1;i<=105;i++){
+    const ri=i<=18?0:i<=32?1:i<=46?2:i<=58?3:i<=68?4:i<=78?5:i<=87?6:i<=96?7:8;
+    arr.push({id:'E'+String(i).padStart(3,'0'),role:rl[ri],spec:sp[ri],
+      current_role:ri<=1?'معالج':ri===6?'معلم':'متخصص',service:'S00'+(ri%5+1),
+      center:ctrs[(i-1)%4],period:i%2===0?'صباحي':'مسائي',status:'على رأس العمل'});
+  }
+  return arr;
+}
+function buildDemoSessions() {
+  const types=['فردية','جماعية'],statuses=['تمت','ملغاة'],srvs=['S001','S002','S003','S004','S005'];
+  const arr=[];
+  for(let i=1;i<=140;i++){
+    arr.push({id:'SS'+String(i).padStart(3,'0'),date:'2026-0'+Math.min(4,Math.ceil(i/35))+'-'+String((i%28)+1).padStart(2,'0'),
+      ben:'B'+String((i%200)+1).padStart(3,'0'),emp:'E'+String((i%105)+1).padStart(3,'0'),
+      service:srvs[i%5],type:i%5===0?'جماعية':'فردية',period:i%2===0?'صباحي':'مسائي',
+      status:i%8===0?'ملغاة':'تمت'});
+  }
+  return arr;
+}
+function buildDemoPayments() {
+  const types=['سند قبض','إعفاء'],methods=['جهة داعمة','إعفاء حكومي','تحويل','شبكة','نقدي'];
+  const arr=[];
+  for(let i=1;i<=200;i++){
+    arr.push({id:'P'+String(i).padStart(3,'0'),ben:'B'+String(i).padStart(3,'0'),
+      date:'2026-0'+Math.min(4,Math.ceil(i/50))+'-'+String((i%28)+1).padStart(2,'0'),
+      amount:[1500,2000,2500,3000][i%4],type:i%5===0?'إعفاء':'سند قبض',
+      method:methods[i%5]});
+  }
+  return arr;
+}
+function buildDemoAbsence() {
+  const reasons=['مرضي','غياب بدون عذر','غياب بعذر','إجازة اضطرارية','مهمة رسمية'];
+  const arr=[];
+  for(let i=1;i<=80;i++){
+    arr.push({Absence_ID:'AB'+String(i).padStart(3,'0'),
+      Entity_Type:i%3===0?'Employee':'Beneficiary',
+      Entity_ID:(i%3===0?'E':'B')+String(i).padStart(3,'0'),
+      التاريخ:'2026-04-'+String((i%28)+1).padStart(2,'0'),
+      سبب_الغياب:reasons[i%5]});
+  }
+  return arr;
+}
+function buildDemoAdmin() {
+  const statuses=['متوقف','إعادة قيد','طي قيد','تخرج','إنهاء خدمة','نقل'];
+  const reasons=['ظروف صحية','استئناف الخدمة','انقطاع طويل','تحسن الحالة','استقالة','نقل لمركز آخر'];
+  const arr=[];
+  for(let i=1;i<=60;i++){
+    arr.push({Status_ID:'ST'+String(i).padStart(3,'0'),
+      Entity_Type:i%4===0?'Employee':'Beneficiary',
+      Entity_ID:(i%4===0?'E':'B')+String(i).padStart(3,'0'),
+      التاريخ:'2026-0'+Math.min(4,Math.ceil(i/15))+'-'+String((i%28)+1).padStart(2,'0'),
+      الحالة:statuses[i%6],السبب:reasons[i%6]});
+  }
+  return arr;
+}
+
+// ── متغيرات التوافق مع الكود القديم ─────────────────────────────
+let benData = [], empData = [];
+
+// ======================= OVERVIEW CHARTS =======================
+function initOverviewCharts() {
+  const ben = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+  const emp = DB.employees.length     ? DB.employees     : buildDemoEmp();
+  const ses = DB.sessions.length      ? DB.sessions      : buildDemoSessions();
+  const pay = DB.payments.length      ? DB.payments      : buildDemoPayments();
+
+  // مستفيدون حسب المركز
+  const benCenters = countBy(ben,'center');
+  const ctrs = ['مكة','نجد','القدس','جلمودة'];
+  makeChart('benCenter','bar', ctrs,
+    [{label:'عدد المستفيدين', data:ctrs.map(c=>benCenters[c]||0),
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple],borderRadius:8}]);
+
+  // موظفون حسب المركز
+  const empCenters = countBy(emp,'center');
+  makeChart('empCenter','bar', ctrs,
+    [{label:'عدد الموظفين', data:ctrs.map(c=>empCenters[c]||0),
+      backgroundColor:[COLORS.green+'aa',COLORS.blue+'aa',COLORS.amber+'aa',COLORS.purple+'aa'],borderRadius:8}]);
+
+  // جنس
+  const gMap = countBy(ben,'gender');
+  makeChart('gender','doughnut',['إناث','ذكور'],
+    [{data:[gMap['أنثى']||0,gMap['ذكر']||0],backgroundColor:[COLORS.purple,COLORS.blue],borderWidth:0,hoverOffset:8}],
+    {cutout:'72%'});
+
+  // حالة الجلسات
+  const sMap = countBy(ses,'status');
+  makeChart('sessionStatus','doughnut',['تمت','ملغاة'],
+    [{data:[sMap['تمت']||0,sMap['ملغاة']||0],backgroundColor:[COLORS.green,COLORS.red],borderWidth:0,hoverOffset:8}],
+    {cutout:'72%'});
+
+  // نوع التحصيل
+  const pMap = countBy(pay,'type');
+  makeChart('payType','doughnut',['سند قبض','إعفاء'],
+    [{data:[pMap['سند قبض']||0,pMap['إعفاء']||0],backgroundColor:[COLORS.amber,COLORS.teal],borderWidth:0,hoverOffset:8}],
+    {cutout:'72%'});
+}
+
+// ======================= BENEFICIARIES =======================
+// (بيانات المستفيدين تأتي من DB.beneficiaries بعد التحميل)
+const centers=['مكة','نجد','القدس','جلمودة'];
+const diags=['توحد','تأخر لغوي','إعاقة ذهنية','تأخر نمائي','متلازمة داون','صعوبات تعلم','اضطراب فرط الحركة','شلل دماغي'];
+const programs=['فصول','جلسات فردية','كلاهما'];
+const feeTypes=['أفراد','الشؤون الاجتماعية','شركة سابك','تأمين / شركات','شركة حديد'];
+const services=['S001','S002','S003','S004','S005'];
+
+// ── أداة إحصاء ─────────────────────────────────────────────────
+function countBy(arr, key) {
+  return arr.reduce((acc,r)=>{ const v=String(r[key]||'').trim(); acc[v]=(acc[v]||0)+1; return acc; },{});
+}
+
+function initBenCharts() {
+  const ben = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+
+  // تشخيصات — حساب حي
+  const diagMap = countBy(ben, 'diagnosis');
+  const diagLabels = Object.keys(diagMap).sort((a,b)=>diagMap[b]-diagMap[a]);
+  makeChart('diagFull','bar', diagLabels,
+    [{label:'عدد المستفيدين', data:diagLabels.map(d=>diagMap[d]),
+      backgroundColor:PALETTE.slice(0,diagLabels.length).map(c=>c+'cc'), borderRadius:6}]);
+
+  // مسار
+  const pathMap = countBy(ben,'path');
+  const pathLabels = Object.keys(pathMap);
+  makeChart('path','doughnut', pathLabels,
+    [{data:pathLabels.map(p=>pathMap[p]),backgroundColor:[COLORS.blue,COLORS.green,COLORS.purple],borderWidth:0,hoverOffset:8}],
+    {cutout:'65%'});
+
+  // برنامج
+  const progMap = countBy(ben,'program');
+  const progLabels = Object.keys(progMap);
+  makeChart('program','bar', progLabels,
+    [{label:'البرنامج', data:progLabels.map(p=>progMap[p]),
+      backgroundColor:[COLORS.amber,COLORS.blue,COLORS.green], borderRadius:6}]);
+
+  // مصادر التمويل
+  const feeMap = countBy(ben,'feeType');
+  const feeLabels = Object.keys(feeMap);
+  makeChart('feeType','doughnut', feeLabels,
+    [{data:feeLabels.map(f=>feeMap[f]),backgroundColor:PALETTE.slice(0,feeLabels.length),borderWidth:0,hoverOffset:6}],
+    {cutout:'60%'});
+}
+
+function renderBenTable(data) {
+  const tbody = document.getElementById('ben-tbody');
+  const pillClass = {
+    'مستمر':'pill-green', 'متوقف':'pill-red',
+    'منسحب':'pill-amber', 'متخرج':'pill-blue'
+  };
+  tbody.innerHTML = data.slice(0,50).map(b=>`
+    <tr>
+      <td><code style="color:var(--accent);font-size:11px">${b.id}</code></td>
+      <td>${b.gender==='ذكر'?'👦 ذكر':'👧 أنثى'}</td>
+      <td>${b.center}</td>
+      <td><span class="status-pill ${b.period==='صباحي'?'pill-amber':'pill-purple'}">${b.period}</span></td>
+      <td>${b.diagnosis}</td>
+      <td>${b.path}</td>
+      <td><span style="color:${b.iq>=80?'var(--accent)':b.iq>=65?'var(--accent2)':'var(--accent3)'};font-weight:700">${b.iq}</span></td>
+      <td>${b.service}</td>
+      <td>${b.program}</td>
+      <td>${b.fee.toLocaleString()} ر</td>
+      <td>${b.feeType}</td>
+      <td><span class="status-pill pill-green">✓ ${b.status}</span></td>
+    </tr>`).join('');
+  document.getElementById('ben-count-label').textContent = `عرض: ${Math.min(50,data.length)} من ${data.length} مستفيد`;
+  // Update KPIs
+  document.getElementById('ben-total').textContent = data.length;
+  document.getElementById('ben-male').textContent = data.filter(b=>b.gender==='ذكر').length;
+  document.getElementById('ben-female').textContent = data.filter(b=>b.gender==='أنثى').length;
+  const avgIQ = Math.round(data.reduce((s,b)=>s+b.iq,0)/data.length);
+  document.getElementById('ben-iq').textContent = avgIQ;
+  const avgFee = Math.round(data.reduce((s,b)=>s+b.fee,0)/data.length);
+  document.getElementById('ben-fee').textContent = avgFee.toLocaleString();
+}
+
+function filterBen() {
+  const c = document.getElementById('ben-center-filter').value;
+  const g = document.getElementById('ben-gender-filter').value;
+  const d = document.getElementById('ben-diag-filter').value;
+  const p = document.getElementById('ben-period-filter').value;
+  const src = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+  const filtered = src.filter(b=>
+    (c==='all'||b.center===c)&&
+    (g==='all'||b.gender===g)&&
+    (d==='all'||b.diagnosis===d)&&
+    (p==='all'||b.period===p)
+  );
+  renderBenTable(filtered);
+}
+function resetBenFilter() {
+  ['ben-center-filter','ben-gender-filter','ben-diag-filter','ben-period-filter']
+    .forEach(id=>document.getElementById(id).value='all');
+  const src = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+  renderBenTable(src);
+}
+
+// ======================= EMPLOYEES =======================
+// (بيانات الموظفين تأتي من DB.employees)
+
+function initEmpCharts() {
+  const emp = DB.employees.length ? DB.employees : buildDemoEmp();
+
+  const roleMap = countBy(emp,'role');
+  const roleLabels = Object.keys(roleMap).sort((a,b)=>roleMap[b]-roleMap[a]);
+  makeChart('empRole','bar', roleLabels,
+    [{label:'عدد الموظفين', data:roleLabels.map(r=>roleMap[r]),
+      backgroundColor:PALETTE.map(c=>c+'cc'), borderRadius:6}],
+    {indexAxis:'y'});
+
+  const srvMap = countBy(emp,'service');
+  const srvLabels = Object.keys(srvMap);
+  makeChart('empService','doughnut', srvLabels,
+    [{data:srvLabels.map(s=>srvMap[s]), backgroundColor:PALETTE.slice(0,srvLabels.length), borderWidth:0, hoverOffset:6}],
+    {cutout:'55%'});
+}
+
+function renderEmpTable(data) {
+  const tbody = document.getElementById('emp-tbody');
+  tbody.innerHTML = data.slice(0,50).map(e=>`
+    <tr>
+      <td><code style="color:#60a5fa;font-size:11px">${e.id}</code></td>
+      <td>${e.role}</td>
+      <td>${e.spec}</td>
+      <td>${e.current_role}</td>
+      <td>${e.service}</td>
+      <td>${e.center}</td>
+      <td><span class="status-pill ${e.period==='صباحي'?'pill-amber':'pill-purple'}">${e.period}</span></td>
+      <td><span class="status-pill pill-green">✓ ${e.status}</span></td>
+    </tr>`).join('');
+  document.getElementById('emp-count-label').textContent = `عرض: ${Math.min(50,data.length)} من ${data.length} موظف`;
+  document.getElementById('emp-total').textContent = data.length;
+  document.getElementById('emp-morning').textContent = data.filter(e=>e.period==='صباحي').length;
+  document.getElementById('emp-evening').textContent = data.filter(e=>e.period==='مسائي').length;
+}
+
+function filterEmp() {
+  const c = document.getElementById('emp-center-filter').value;
+  const p = document.getElementById('emp-period-filter').value;
+  const r = document.getElementById('emp-role-filter').value;
+  const src = DB.employees.length ? DB.employees : buildDemoEmp();
+  const filtered = src.filter(e=>
+    (c==='all'||e.center===c)&&
+    (p==='all'||e.period===p)&&
+    (r==='all'||e.role===r)
+  );
+  renderEmpTable(filtered);
+}
+function resetEmpFilter() {
+  ['emp-center-filter','emp-period-filter','emp-role-filter']
+    .forEach(id=>document.getElementById(id).value='all');
+  const src = DB.employees.length ? DB.employees : buildDemoEmp();
+  renderEmpTable(src);
+}
+
+// ======================= SESSIONS =======================
+function initSessionCharts() {
+  const ses = DB.sessions.length ? DB.sessions : buildDemoSessions();
+
+  const srvMap = countBy(ses,'service');
+  const srvLabels = Object.keys(srvMap).sort();
+  makeChart('sesService','bar', srvLabels,
+    [{label:'عدد الجلسات', data:srvLabels.map(s=>srvMap[s]),
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple,COLORS.red], borderRadius:6}]);
+
+  const morning = ses.filter(s=>s.period==='صباحي');
+  const evening = ses.filter(s=>s.period==='مسائي');
+  makeChart('sesPeriod','bar',['صباحي','مسائي'],
+    [
+      {label:'فردية', data:[morning.filter(s=>s.type==='فردية').length, evening.filter(s=>s.type==='فردية').length],
+       backgroundColor:COLORS.blue+'cc', borderRadius:6},
+      {label:'جماعية', data:[morning.filter(s=>s.type==='جماعية').length, evening.filter(s=>s.type==='جماعية').length],
+       backgroundColor:COLORS.amber+'cc', borderRadius:6}
+    ]);
+}
+
+function renderSesTable() {
+  const ses = (DB.sessions.length ? DB.sessions : buildDemoSessions()).slice(0,30);
+  const tbody = document.getElementById('ses-tbody');
+  tbody.innerHTML = ses.map(s=>`
+    <tr>
+      <td><code style="color:var(--accent2);font-size:11px">${s.id}</code></td>
+      <td>${s.date}</td>
+      <td>${s.ben}</td>
+      <td>${s.emp}</td>
+      <td>${s.service}</td>
+      <td>${s.type==='فردية'?'👤 فردية':'👥 جماعية'}</td>
+      <td><span class="status-pill ${s.period==='صباحي'?'pill-amber':'pill-purple'}">${s.period}</span></td>
+      <td><span class="status-pill ${s.status==='تمت'?'pill-green':'pill-red'}">${s.status==='تمت'?'✓':'✕'} ${s.status}</span></td>
+    </tr>`).join('');
+}
+
+// ======================= FINANCIAL =======================
+function initFinCharts() {
+  const pay = DB.payments.length ? DB.payments : buildDemoPayments();
+  const ben = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+
+  const methodMap = countBy(pay,'method');
+  const mLabels = Object.keys(methodMap);
+  makeChart('payMethod','doughnut', mLabels,
+    [{data:mLabels.map(m=>methodMap[m]),
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple,COLORS.red],
+      borderWidth:0,hoverOffset:8}],
+    {cutout:'60%'});
+
+  const feeMap = countBy(ben,'feeType');
+  const fLabels = Object.keys(feeMap);
+  makeChart('feeTypeFin','bar', fLabels,
+    [{label:'عدد المستفيدين', data:fLabels.map(f=>feeMap[f]),
+      backgroundColor:PALETTE.slice(0,fLabels.length).map(c=>c+'cc'), borderRadius:6}]);
+}
+
+function renderFinTable() {
+  const pay = (DB.payments.length ? DB.payments : buildDemoPayments()).slice(0,30);
+  const tbody = document.getElementById('fin-tbody');
+  tbody.innerHTML = pay.map(p=>`
+    <tr>
+      <td><code style="color:var(--accent2);font-size:11px">${p.id}</code></td>
+      <td>${p.ben}</td>
+      <td>${p.date}</td>
+      <td style="color:var(--accent);font-weight:700">${Number(p.amount).toLocaleString()} ر.س</td>
+      <td><span class="status-pill ${p.type==='إعفاء'?'pill-amber':'pill-green'}">${p.type}</span></td>
+      <td>${p.method}</td>
+    </tr>`).join('');
+}
+
+// ======================= CENTERS =======================
+function initCenterCharts() {
+  const ben = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+  const emp = DB.employees.length     ? DB.employees     : buildDemoEmp();
+  const ses = DB.sessions.length      ? DB.sessions      : buildDemoSessions();
+  const ctrs = ['مكة','نجد','القدس','جلمودة'];
+  const benMap = countBy(ben,'center');
+  const empMap = countBy(emp,'center');
+  const sesMap = countBy(ses,'center')||{};
+
+  makeChart('centerCompare','bar', ctrs,
+    [
+      {label:'المستفيدون', data:ctrs.map(c=>benMap[c]||0), backgroundColor:COLORS.green+'cc', borderRadius:4},
+      {label:'الموظفون',   data:ctrs.map(c=>empMap[c]||0), backgroundColor:COLORS.blue+'cc',  borderRadius:4}
+    ]);
+
+  // توزيع الجلسات — تقدير بالنسبة للمستفيدين
+  makeChart('centerSes','doughnut', ctrs,
+    [{data:ctrs.map(c=>benMap[c]||0),
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple],borderWidth:0,hoverOffset:6}],
+    {cutout:'60%'});
+
+  // تحديث بطاقات المراكز
+  ctrs.forEach((c,i) => {
+    const b = benMap[c]||0, e = empMap[c]||1;
+    const ratio = (b/e).toFixed(2);
+    const cards = document.querySelectorAll('.center-card');
+    if (cards[i]) {
+      const vals = cards[i].querySelectorAll('.center-stat-val');
+      if (vals[0]) vals[0].textContent = b;
+      if (vals[1]) vals[1].textContent = empMap[c]||0;
+      if (vals[2]) vals[2].textContent = ratio;
+    }
+  });
+}
+
+// ======================= ADMIN =======================
+function initAdminCharts() {
+  const abs = DB.absence.length     ? DB.absence     : buildDemoAbsence();
+  const adm = DB.adminStatus.length ? DB.adminStatus : buildDemoAdmin();
+
+  const reasonMap = countBy(abs,'سبب_الغياب');
+  const rLabels = Object.keys(reasonMap);
+  makeChart('absReason','bar', rLabels,
+    [{label:'عدد الحالات', data:rLabels.map(r=>reasonMap[r]),
+      backgroundColor:PALETTE.slice(0,rLabels.length).map(c=>c+'cc'), borderRadius:6}]);
+
+  const statusMap = countBy(adm,'الحالة');
+  const sLabels = Object.keys(statusMap);
+  makeChart('adminStatus','doughnut', sLabels,
+    [{data:sLabels.map(s=>statusMap[s]),
+      backgroundColor:[COLORS.red,COLORS.amber,COLORS.purple,COLORS.green,COLORS.blue,COLORS.teal],
+      borderWidth:0,hoverOffset:8}],
+    {cutout:'60%'});
+}
+
+function renderAdmTable() {
+  const adm = (DB.adminStatus.length ? DB.adminStatus : buildDemoAdmin()).slice(0,30);
+  const statusColors = {
+    'متوقف':'pill-red','إعادة قيد':'pill-green','طي قيد':'pill-amber',
+    'تخرج':'pill-blue','إنهاء خدمة':'pill-red','نقل':'pill-purple'
+  };
+  const tbody = document.getElementById('adm-tbody');
+  tbody.innerHTML = adm.map(r=>`
+    <tr>
+      <td><code style="color:var(--accent4);font-size:11px">${r.Status_ID||r.id||''}</code></td>
+      <td>${r.Entity_Type==='Beneficiary'?'مستفيد':'موظف'}</td>
+      <td>${r.Entity_ID||r.entityId||''}</td>
+      <td>${r['التاريخ']||r.date||''}</td>
+      <td><span class="status-pill ${statusColors[r['الحالة']||r.status]||'pill-blue'}">${r['الحالة']||r.status||''}</span></td>
+      <td>${r['السبب']||r.reason||''}</td>
+    </tr>`).join('');
+}
+
+// ======================= NAV =======================
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  refreshSection(name);
+}
+
+// ======================= INIT =======================
+document.addEventListener('DOMContentLoaded', () => {
+  // التاريخ
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // شارة الاتصال
+  const badge = document.createElement('div');
+  badge.id = 'connectionBadge';
+  badge.style.cssText = 'font-size:12px;padding:5px 14px;border-radius:20px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:600;white-space:nowrap;transition:all .3s;';
+  badge.title = 'انقر لإعادة التحميل من Google Sheets';
+  badge.onclick = () => loadFromSheets();
+  document.querySelector('.header-meta')?.insertBefore(badge, document.querySelector('.header-meta').firstChild);
+
+  // أنيميشن spin
+  const st = document.createElement('style');
+  st.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(st);
+
+  // تحميل البيانات
+  loadDemoData();          // فوري — بيانات تجريبية
+  initOverviewCharts();    // ارسم فوراً
+  updateOverviewKPIs();
+  setStatus('demo');
+
+  // محاولة الاتصال بـ Sheets
+  loadFromSheets();
+
+  // تحديث تلقائي كل 5 دقائق عند الاتصال
+  setInterval(() => { if(DB.isLive) loadFromSheets(); }, 5 * 60 * 1000);
+});
+
+
+</script>
+</body>
+</html>
