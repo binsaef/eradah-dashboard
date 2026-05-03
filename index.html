@@ -441,6 +441,33 @@
     color: var(--text) !important;
     direction: rtl;
   }
+
+  /* TIME FILTER BAR */
+  .tf-bar{background:#112240;border-bottom:1px solid rgba(255,255,255,.07);padding:0 32px;height:52px;display:flex;align-items:center;}
+  .tf-bar-inner{max-width:1600px;margin:0 auto;width:100%;display:flex;align-items:center;gap:16px;}
+  .tf-title{font-size:11px;font-weight:800;color:#00c9a7;white-space:nowrap;display:flex;align-items:center;gap:5px;padding-left:16px;border-left:1px solid rgba(255,255,255,.1);height:24px;flex-shrink:0;}
+  .tf-modes{display:flex;background:rgba(0,0,0,.35);border-radius:7px;padding:2px;border:1px solid rgba(255,255,255,.1);gap:2px;flex-shrink:0;}
+  .tf-mode-btn{padding:4px 12px;border-radius:5px;border:none;background:transparent;color:#64748b;font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .tf-mode-btn.active{background:#00c9a7;color:#0d1b2a;font-weight:800;}
+  .tf-divider{width:1px;height:24px;background:rgba(255,255,255,.1);flex-shrink:0;}
+  .tf-fields{display:flex;align-items:center;gap:8px;}
+  .tf-lbl{font-size:10px;color:#64748b;font-weight:700;white-space:nowrap;}
+  .tf-input{background:rgba(0,0,0,.35);color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 10px;font-family:'Cairo',sans-serif;font-size:11px;outline:none;color-scheme:dark;width:130px;transition:border-color .2s;}
+  .tf-input:focus{border-color:#00c9a7;}
+  .tf-select{background:rgba(0,0,0,.35);color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 10px;font-family:'Cairo',sans-serif;font-size:11px;outline:none;cursor:pointer;}
+  .tf-select:focus{border-color:#00c9a7;}
+  .tf-arrow{color:#475569;font-size:12px;}
+  .tf-spacer{flex:1;}
+  .tf-btns{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .tf-pill{display:none;align-items:center;gap:5px;background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.25);border-radius:20px;padding:4px 12px;font-size:10px;color:#00c9a7;font-weight:700;white-space:nowrap;}
+  .tf-pill.show{display:flex;}
+  .tf-pill-dot{width:5px;height:5px;border-radius:50%;background:#00c9a7;animation:pulse 1.5s infinite;flex-shrink:0;}
+  .tf-apply{background:linear-gradient(135deg,#00c9a7,#00a887);color:#0d1b2a;border:none;border-radius:7px;padding:6px 16px;font-family:'Cairo',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:opacity .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+  .tf-apply:hover{opacity:.85;}
+  .tf-reset{display:none;align-items:center;gap:4px;background:transparent;color:#64748b;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 12px;font-family:'Cairo',sans-serif;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .tf-reset.show{display:flex;}
+  .tf-reset:hover{color:#ef4444;border-color:rgba(239,68,68,.4);}
+
 </style>
 </head>
 <body>
@@ -474,55 +501,58 @@
   <button class="nav-tab" onclick="showSection('financial')">💰 التحصيل المالي</button>
   <button class="nav-tab" onclick="showSection('centers')">🏢 مقارنة المراكز</button>
   <button class="nav-tab" onclick="showSection('insights')">💡 التوصيات</button>
+</nav>
 
-  <!-- فاصل -->
-  <div style="flex:1"></div>
 
-  <!-- فلتر الفترة الزمنية مدمج في شريط NAV -->
-  <div class="tf-nav-wrap">
+<!-- TIME FILTER BAR -->
+<div class="tf-bar">
+  <div class="tf-bar-inner">
 
-    <!-- أزرار الوضع -->
-    <div class="tf-nav-modes">
-      <button class="tf-nav-mode active" id="tf-mode-range" onclick="setTimeMode('range')">📆 تاريخين</button>
-      <button class="tf-nav-mode" id="tf-mode-quarter" onclick="setTimeMode('quarter')">📊 ربع سنوي</button>
+    <div class="tf-title">📅 الفترة الزمنية</div>
+
+    <div class="tf-modes">
+      <button class="tf-mode-btn active" id="tf-mode-range"   onclick="setTimeMode('range')">بين تاريخين</button>
+      <button class="tf-mode-btn"        id="tf-mode-quarter" onclick="setTimeMode('quarter')">ربع سنوي</button>
     </div>
 
-    <!-- حقول: بين تاريخين -->
-    <div class="tf-nav-fields" id="tf-inputs-range">
-      <input type="date" class="tf-nav-input" id="date-from">
-      <span class="tf-nav-arrow">←</span>
-      <input type="date" class="tf-nav-input" id="date-to">
+    <div class="tf-divider"></div>
+
+    <div class="tf-fields" id="tf-inputs-range">
+      <span class="tf-lbl">من</span>
+      <input type="date" class="tf-input" id="date-from">
+      <span class="tf-arrow">←</span>
+      <span class="tf-lbl">إلى</span>
+      <input type="date" class="tf-input" id="date-to">
     </div>
 
-    <!-- حقول: الأرباع -->
-    <div class="tf-nav-fields" id="tf-inputs-quarter" style="display:none">
-      <select class="tf-nav-select" id="quarter-year">
+    <div class="tf-fields" id="tf-inputs-quarter" style="display:none">
+      <select class="tf-select" id="quarter-year">
         <option value="2026">2026</option>
         <option value="2025">2025</option>
         <option value="2024">2024</option>
         <option value="2023">2023</option>
       </select>
-      <select class="tf-nav-select" id="quarter-q" style="min-width:150px">
-        <option value="1">Q1 — يناير / مارس</option>
-        <option value="2">Q2 — أبريل / يونيو</option>
-        <option value="3">Q3 — يوليو / سبتمبر</option>
-        <option value="4">Q4 — أكتوبر / ديسمبر</option>
+      <select class="tf-select" id="quarter-q" style="min-width:160px">
+        <option value="1">Q1 — يناير : مارس</option>
+        <option value="2">Q2 — أبريل : يونيو</option>
+        <option value="3">Q3 — يوليو : سبتمبر</option>
+        <option value="4">Q4 — أكتوبر : ديسمبر</option>
       </select>
     </div>
 
-    <!-- أزرار -->
-    <button class="tf-nav-apply" onclick="applyTimeFilter()">⚡</button>
-    <button class="tf-nav-reset" onclick="resetTimeFilter()" id="tf-nav-reset-btn" style="display:none">✕</button>
+    <div class="tf-spacer"></div>
 
-    <!-- شارة الفترة النشطة -->
-    <div class="tf-nav-pill" id="tf-active-pill">
-      <span class="tf-nav-pill-dot"></span>
-      <span id="tf-active-label"></span>
+    <div class="tf-btns">
+      <div class="tf-pill" id="tf-active-pill">
+        <span class="tf-pill-dot"></span>
+        <span id="tf-active-label"></span>
+      </div>
+      <button class="tf-reset" id="tf-reset-btn" onclick="resetTimeFilter()">✕ إلغاء</button>
+      <button class="tf-apply" onclick="applyTimeFilter()">⚡ تطبيق الفترة</button>
     </div>
 
   </div>
-</nav>
-
+</div>
 
 <!-- MAIN -->
 <main class="main">
@@ -1448,10 +1478,9 @@ function applyTimeFilter() {
   TIME_FILTER.label  = label;
 
   // عرض الشارة النشطة
-  document.getElementById('tf-active-pill').classList.add('on');
+  document.getElementById('tf-active-pill').classList.add('show');
   document.getElementById('tf-active-label').textContent = label;
-  const rb = document.getElementById('tf-nav-reset-btn');
-  if(rb) rb.style.display = 'flex';
+  document.getElementById('tf-reset-btn').classList.add('show');
 
   // تحديث جميع الصفحات
   applyTimeToAll();
@@ -1462,11 +1491,12 @@ function resetTimeFilter() {
   TIME_FILTER.active = false;
   TIME_FILTER.from   = null;
   TIME_FILTER.to     = null;
-  document.getElementById('tf-active-pill').classList.remove('on');
+  document.getElementById('tf-active-pill').classList.remove('show');
+  document.getElementById('tf-reset-btn').classList.remove('show');
   document.getElementById('date-from').value = '';
   document.getElementById('date-to').value   = '';
-  const rb = document.getElementById('tf-nav-reset-btn');
-  if(rb) rb.style.display = 'none';
+  document.getElementById('date-from').value = '';
+  document.getElementById('date-to').value   = '';
   applyTimeToAll();
 }
 
