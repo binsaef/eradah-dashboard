@@ -269,7 +269,17 @@
   .chart-wrap { position: relative; }
 
   /* ===== TABLE ===== */
-  .data-table-wrap { overflow-x: auto; }
+  .data-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 420px; border-radius: 8px; }
+  .data-table-wrap thead th { position: sticky; top: 0; z-index: 2; background: var(--bg); }
+
+  .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 4px 0; flex-wrap:wrap; gap:8px; }
+  .pagination-info { font-size:12px; color:var(--text-muted); }
+  .pagination-btns { display:flex; gap:6px; align-items:center; }
+  .page-btn { background:var(--bg2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:5px 12px; font-family:"Cairo",sans-serif; font-size:12px; cursor:pointer; transition:all .2s; }
+  .page-btn:hover:not(:disabled) { background:var(--accent); color:#0d1b2a; border-color:var(--accent); }
+  .page-btn:disabled { opacity:.35; cursor:not-allowed; }
+  .page-btn.active { background:var(--accent); color:#0d1b2a; border-color:var(--accent); font-weight:700; }
+  .page-size-select { background:var(--bg2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-family:"Cairo",sans-serif; font-size:12px; cursor:pointer; }
   table {
     width: 100%;
     border-collapse: collapse;
@@ -1673,13 +1683,97 @@ function initBenCharts() {
     {cutout:'60%'});
 }
 
-function renderBenTable(data) {
-  const tbody = document.getElementById('ben-tbody');
-  const pillClass = {
-    'مستمر':'pill-green', 'متوقف':'pill-red',
-    'منسحب':'pill-amber', 'متخرج':'pill-blue'
+// ======================= PAGINATION ENGINE =======================
+const PAGE_STATE = {};
+
+function renderPage(tableId, data, page, pageSize, renderRow, counterId, extraUpdate) {
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const p = Math.min(Math.max(1, page), totalPages);
+  PAGE_STATE[tableId] = { data, page:p, pageSize };
+
+  const slice = data.slice((p-1)*pageSize, p*pageSize);
+  document.getElementById(tableId).innerHTML = slice.map(renderRow).join('');
+
+  if (counterId) {
+    const el = document.getElementById(counterId);
+    if (el) el.textContent = `عرض: ${(p-1)*pageSize+1}–${Math.min(p*pageSize,total)} من ${total}`;
+  }
+  if (extraUpdate) extraUpdate(data);
+  renderPagination(tableId, p, totalPages, pageSize);
+}
+
+function renderPagination(tableId, page, totalPages, pageSize) {
+  const wrapperId = tableId + '-pagination';
+  let wrapper = document.getElementById(wrapperId);
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.id = wrapperId;
+    wrapper.className = 'pagination';
+    const tbody = document.getElementById(tableId);
+    tbody.closest('table').after(wrapper);
+  }
+
+  let btns = '';
+  // أزرار الصفحات — اعرض 5 كحد أقصى
+  const start = Math.max(1, page-2);
+  const end   = Math.min(totalPages, start+4);
+  if (page > 1) btns += `<button class="page-btn" onclick="goPage('${tableId}',${page-1})">‹ السابق</button>`;
+  for (let i=start; i<=end; i++) {
+    btns += `<button class="page-btn ${i===page?'active':''}" onclick="goPage('${tableId}',${i})">${i}</button>`;
+  }
+  if (page < totalPages) btns += `<button class="page-btn" onclick="goPage('${tableId}',${page+1})">التالي ›</button>`;
+
+  wrapper.innerHTML = `
+    <div class="pagination-info">إجمالي: ${PAGE_STATE[tableId].data.length} سجل — صفحة ${page} من ${totalPages}</div>
+    <div class="pagination-btns">
+      <select class="page-size-select" onchange="changePageSize('${tableId}',this.value)">
+        <option value="10" ${pageSize==10?'selected':''}>10 / صفحة</option>
+        <option value="20" ${pageSize==20?'selected':''}>20 / صفحة</option>
+        <option value="50" ${pageSize==50?'selected':''}>50 / صفحة</option>
+        <option value="100" ${pageSize==100?'selected':''}>100 / صفحة</option>
+      </select>
+      ${btns}
+    </div>`;
+}
+
+function goPage(tableId, page) {
+  const s = PAGE_STATE[tableId];
+  if (!s) return;
+  // إعادة استدعاء render function المناسبة
+  const fns = {
+    'ben-tbody': ()=>renderBenPage(s.data, page, s.pageSize),
+    'emp-tbody': ()=>renderEmpPage(s.data, page, s.pageSize),
+    'ses-tbody': ()=>renderSesPage(s.data, page, s.pageSize),
+    'fin-tbody': ()=>renderFinPage(s.data, page, s.pageSize),
+    'adm-tbody': ()=>renderAdmPage(s.data, page, s.pageSize),
   };
-  tbody.innerHTML = data.slice(0,50).map(b=>`
+  if (fns[tableId]) fns[tableId]();
+}
+
+function changePageSize(tableId, newSize) {
+  const s = PAGE_STATE[tableId];
+  if (!s) return;
+  goPage(tableId, 1);
+  PAGE_STATE[tableId].pageSize = parseInt(newSize);
+  goPage(tableId, 1);
+}
+
+// ======================= BEN TABLE =======================
+function renderBenTable(data) {
+  renderBenPage(data, 1, 20);
+  // Update KPIs
+  document.getElementById('ben-total').textContent = data.length;
+  document.getElementById('ben-male').textContent = data.filter(b=>b.gender==='ذكر').length;
+  document.getElementById('ben-female').textContent = data.filter(b=>b.gender==='أنثى').length;
+  if (data.length) {
+    document.getElementById('ben-iq').textContent = Math.round(data.reduce((s,b)=>s+b.iq,0)/data.length);
+    document.getElementById('ben-fee').textContent = Math.round(data.reduce((s,b)=>s+b.fee,0)/data.length).toLocaleString();
+  }
+}
+
+function renderBenPage(data, page, pageSize) {
+  renderPage('ben-tbody', data, page, pageSize||20, b=>`
     <tr>
       <td><code style="color:var(--accent);font-size:11px">${b.id}</code></td>
       <td>${b.gender==='ذكر'?'👦 ذكر':'👧 أنثى'}</td>
@@ -1690,19 +1784,10 @@ function renderBenTable(data) {
       <td><span style="color:${b.iq>=80?'var(--accent)':b.iq>=65?'var(--accent2)':'var(--accent3)'};font-weight:700">${b.iq}</span></td>
       <td>${b.service}</td>
       <td>${b.program}</td>
-      <td>${b.fee.toLocaleString()} ر</td>
+      <td>${Number(b.fee).toLocaleString()} ر</td>
       <td>${b.feeType}</td>
       <td><span class="status-pill pill-green">✓ ${b.status}</span></td>
-    </tr>`).join('');
-  document.getElementById('ben-count-label').textContent = `عرض: ${Math.min(50,data.length)} من ${data.length} مستفيد`;
-  // Update KPIs
-  document.getElementById('ben-total').textContent = data.length;
-  document.getElementById('ben-male').textContent = data.filter(b=>b.gender==='ذكر').length;
-  document.getElementById('ben-female').textContent = data.filter(b=>b.gender==='أنثى').length;
-  const avgIQ = Math.round(data.reduce((s,b)=>s+b.iq,0)/data.length);
-  document.getElementById('ben-iq').textContent = avgIQ;
-  const avgFee = Math.round(data.reduce((s,b)=>s+b.fee,0)/data.length);
-  document.getElementById('ben-fee').textContent = avgFee.toLocaleString();
+    </tr>`, 'ben-count-label');
 }
 
 function filterBen() {
@@ -1747,8 +1832,13 @@ function initEmpCharts() {
 }
 
 function renderEmpTable(data) {
-  const tbody = document.getElementById('emp-tbody');
-  tbody.innerHTML = data.slice(0,50).map(e=>`
+  document.getElementById('emp-total').textContent = data.length;
+  document.getElementById('emp-morning').textContent = data.filter(e=>e.period==='صباحي').length;
+  document.getElementById('emp-evening').textContent = data.filter(e=>e.period==='مسائي').length;
+  renderEmpPage(data, 1, 20);
+}
+function renderEmpPage(data, page, pageSize) {
+  renderPage('emp-tbody', data, page, pageSize||20, e=>`
     <tr>
       <td><code style="color:#60a5fa;font-size:11px">${e.id}</code></td>
       <td>${e.role}</td>
@@ -1758,11 +1848,7 @@ function renderEmpTable(data) {
       <td>${e.center}</td>
       <td><span class="status-pill ${e.period==='صباحي'?'pill-amber':'pill-purple'}">${e.period}</span></td>
       <td><span class="status-pill pill-green">✓ ${e.status}</span></td>
-    </tr>`).join('');
-  document.getElementById('emp-count-label').textContent = `عرض: ${Math.min(50,data.length)} من ${data.length} موظف`;
-  document.getElementById('emp-total').textContent = data.length;
-  document.getElementById('emp-morning').textContent = data.filter(e=>e.period==='صباحي').length;
-  document.getElementById('emp-evening').textContent = data.filter(e=>e.period==='مسائي').length;
+    </tr>`, 'emp-count-label');
 }
 
 function filterEmp() {
@@ -1806,9 +1892,11 @@ function initSessionCharts() {
 }
 
 function renderSesTable() {
-  const ses = (DB.sessions.length ? DB.sessions : buildDemoSessions()).slice(0,30);
-  const tbody = document.getElementById('ses-tbody');
-  tbody.innerHTML = ses.map(s=>`
+  const ses = DB.sessions.length ? DB.sessions : buildDemoSessions();
+  renderSesPage(ses, 1, 20);
+}
+function renderSesPage(data, page, pageSize) {
+  renderPage('ses-tbody', data, page, pageSize||20, s=>`
     <tr>
       <td><code style="color:var(--accent2);font-size:11px">${s.id}</code></td>
       <td>${s.date}</td>
@@ -1818,7 +1906,7 @@ function renderSesTable() {
       <td>${s.type==='فردية'?'👤 فردية':'👥 جماعية'}</td>
       <td><span class="status-pill ${s.period==='صباحي'?'pill-amber':'pill-purple'}">${s.period}</span></td>
       <td><span class="status-pill ${s.status==='تمت'?'pill-green':'pill-red'}">${s.status==='تمت'?'✓':'✕'} ${s.status}</span></td>
-    </tr>`).join('');
+    </tr>`);
 }
 
 // ======================= FINANCIAL =======================
@@ -1842,9 +1930,11 @@ function initFinCharts() {
 }
 
 function renderFinTable() {
-  const pay = (DB.payments.length ? DB.payments : buildDemoPayments()).slice(0,30);
-  const tbody = document.getElementById('fin-tbody');
-  tbody.innerHTML = pay.map(p=>`
+  const pay = DB.payments.length ? DB.payments : buildDemoPayments();
+  renderFinPage(pay, 1, 20);
+}
+function renderFinPage(data, page, pageSize) {
+  renderPage('fin-tbody', data, page, pageSize||20, p=>`
     <tr>
       <td><code style="color:var(--accent2);font-size:11px">${p.id}</code></td>
       <td>${p.ben}</td>
@@ -1852,7 +1942,7 @@ function renderFinTable() {
       <td style="color:var(--accent);font-weight:700">${Number(p.amount).toLocaleString()} ر.س</td>
       <td><span class="status-pill ${p.type==='إعفاء'?'pill-amber':'pill-green'}">${p.type}</span></td>
       <td>${p.method}</td>
-    </tr>`).join('');
+    </tr>`);
 }
 
 // ======================= CENTERS =======================
@@ -1912,13 +2002,12 @@ function initAdminCharts() {
 }
 
 function renderAdmTable() {
-  const adm = (DB.adminStatus.length ? DB.adminStatus : buildDemoAdmin()).slice(0,30);
-  const statusColors = {
-    'متوقف':'pill-red','إعادة قيد':'pill-green','طي قيد':'pill-amber',
-    'تخرج':'pill-blue','إنهاء خدمة':'pill-red','نقل':'pill-purple'
-  };
-  const tbody = document.getElementById('adm-tbody');
-  tbody.innerHTML = adm.map(r=>`
+  const adm = DB.adminStatus.length ? DB.adminStatus : buildDemoAdmin();
+  renderAdmPage(adm, 1, 20);
+}
+function renderAdmPage(data, page, pageSize) {
+  const statusColors = {'متوقف':'pill-red','إعادة قيد':'pill-green','طي قيد':'pill-amber','تخرج':'pill-blue','إنهاء خدمة':'pill-red','نقل':'pill-purple'};
+  renderPage('adm-tbody', data, page, pageSize||20, r=>`
     <tr>
       <td><code style="color:var(--accent4);font-size:11px">${r.Status_ID||r.id||''}</code></td>
       <td>${r.Entity_Type==='Beneficiary'?'مستفيد':'موظف'}</td>
@@ -1926,7 +2015,7 @@ function renderAdmTable() {
       <td>${r['التاريخ']||r.date||''}</td>
       <td><span class="status-pill ${statusColors[r['الحالة']||r.status]||'pill-blue'}">${r['الحالة']||r.status||''}</span></td>
       <td>${r['السبب']||r.reason||''}</td>
-    </tr>`).join('');
+    </tr>`);
 }
 
 // ======================= NAV =======================
