@@ -474,73 +474,55 @@
   <button class="nav-tab" onclick="showSection('financial')">💰 التحصيل المالي</button>
   <button class="nav-tab" onclick="showSection('centers')">🏢 مقارنة المراكز</button>
   <button class="nav-tab" onclick="showSection('insights')">💡 التوصيات</button>
-</nav>
 
+  <!-- فاصل -->
+  <div style="flex:1"></div>
 
-<!-- TIME FILTER BAR — شريط الفترة الزمنية -->
-<div class="tf-bar">
-  <div class="tf-bar-inner">
+  <!-- فلتر الفترة الزمنية مدمج في شريط NAV -->
+  <div class="tf-nav-wrap">
 
-    <div class="tf-bar-right">
-      <span class="tf-bar-icon">📅</span>
-      <span class="tf-bar-title">الفترة الزمنية</span>
-      <div class="tf-mode-tabs">
-        <button class="tf-mode-btn active" id="tf-mode-range"   onclick="setTimeMode('range')">بين تاريخين</button>
-        <button class="tf-mode-btn"        id="tf-mode-quarter" onclick="setTimeMode('quarter')">الأرباع</button>
-      </div>
+    <!-- أزرار الوضع -->
+    <div class="tf-nav-modes">
+      <button class="tf-nav-mode active" id="tf-mode-range" onclick="setTimeMode('range')">📆 تاريخين</button>
+      <button class="tf-nav-mode" id="tf-mode-quarter" onclick="setTimeMode('quarter')">📊 ربع سنوي</button>
     </div>
 
-    <div class="tf-bar-center">
-      <!-- بين تاريخين -->
-      <div class="tf-inputs-wrap" id="tf-inputs-range">
-        <div class="tf-field">
-          <label class="tf-field-lbl">من</label>
-          <input type="date" class="tf-date-input" id="date-from">
-        </div>
-        <div class="tf-divider">←</div>
-        <div class="tf-field">
-          <label class="tf-field-lbl">إلى</label>
-          <input type="date" class="tf-date-input" id="date-to">
-        </div>
-      </div>
-      <!-- الأرباع -->
-      <div class="tf-inputs-wrap" id="tf-inputs-quarter" style="display:none">
-        <div class="tf-field">
-          <label class="tf-field-lbl">السنة</label>
-          <select class="tf-select" id="quarter-year">
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-          </select>
-        </div>
-        <div class="tf-field">
-          <label class="tf-field-lbl">الربع</label>
-          <select class="tf-select" id="quarter-q">
-            <option value="1">◼ Q1 — يناير إلى مارس</option>
-            <option value="2">◼ Q2 — أبريل إلى يونيو</option>
-            <option value="3">◼ Q3 — يوليو إلى سبتمبر</option>
-            <option value="4">◼ Q4 — أكتوبر إلى ديسمبر</option>
-          </select>
-        </div>
-      </div>
+    <!-- حقول: بين تاريخين -->
+    <div class="tf-nav-fields" id="tf-inputs-range">
+      <input type="date" class="tf-nav-input" id="date-from">
+      <span class="tf-nav-arrow">←</span>
+      <input type="date" class="tf-nav-input" id="date-to">
     </div>
 
-    <div class="tf-bar-left">
-      <button class="tf-apply-btn" onclick="applyTimeFilter()">
-        <span>⚡</span> تطبيق
-      </button>
-      <button class="tf-reset-btn" onclick="resetTimeFilter()">
-        <span>✕</span> إلغاء
-      </button>
-      <div class="tf-active-pill" id="tf-active-pill">
-        <span class="tf-pill-dot"></span>
-        <span id="tf-active-label">—</span>
-      </div>
+    <!-- حقول: الأرباع -->
+    <div class="tf-nav-fields" id="tf-inputs-quarter" style="display:none">
+      <select class="tf-nav-select" id="quarter-year">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+      </select>
+      <select class="tf-nav-select" id="quarter-q" style="min-width:150px">
+        <option value="1">Q1 — يناير / مارس</option>
+        <option value="2">Q2 — أبريل / يونيو</option>
+        <option value="3">Q3 — يوليو / سبتمبر</option>
+        <option value="4">Q4 — أكتوبر / ديسمبر</option>
+      </select>
+    </div>
+
+    <!-- أزرار -->
+    <button class="tf-nav-apply" onclick="applyTimeFilter()">⚡</button>
+    <button class="tf-nav-reset" onclick="resetTimeFilter()" id="tf-nav-reset-btn" style="display:none">✕</button>
+
+    <!-- شارة الفترة النشطة -->
+    <div class="tf-nav-pill" id="tf-active-pill">
+      <span class="tf-nav-pill-dot"></span>
+      <span id="tf-active-label"></span>
     </div>
 
   </div>
-</div>
+</nav>
+
 
 <!-- MAIN -->
 <main class="main">
@@ -1468,6 +1450,8 @@ function applyTimeFilter() {
   // عرض الشارة النشطة
   document.getElementById('tf-active-pill').classList.add('on');
   document.getElementById('tf-active-label').textContent = label;
+  const rb = document.getElementById('tf-nav-reset-btn');
+  if(rb) rb.style.display = 'flex';
 
   // تحديث جميع الصفحات
   applyTimeToAll();
@@ -1481,6 +1465,8 @@ function resetTimeFilter() {
   document.getElementById('tf-active-pill').classList.remove('on');
   document.getElementById('date-from').value = '';
   document.getElementById('date-to').value   = '';
+  const rb = document.getElementById('tf-nav-reset-btn');
+  if(rb) rb.style.display = 'none';
   applyTimeToAll();
 }
 
