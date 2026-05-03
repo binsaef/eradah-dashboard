@@ -830,7 +830,42 @@
 <section id="section-sessions" class="section">
   <div class="section-title">📋 تحليل الجلسات</div>
 
-  <div class="kpi-grid">
+  <div class="filter-bar">
+    <span class="filter-label">🔍 تصفية:</span>
+    <select class="filter-select" id="ses-center-filter" onchange="filterSes()">
+      <option value="all">جميع المراكز</option>
+      <option value="مكة">مكة</option>
+      <option value="نجد">نجد</option>
+      <option value="القدس">القدس</option>
+      <option value="جلمودة">جلمودة</option>
+    </select>
+    <select class="filter-select" id="ses-status-filter" onchange="filterSes()">
+      <option value="all">الحالة - الكل</option>
+      <option value="تمت">تمت</option>
+      <option value="ملغاة">ملغاة</option>
+    </select>
+    <select class="filter-select" id="ses-type-filter" onchange="filterSes()">
+      <option value="all">النوع - الكل</option>
+      <option value="فردية">فردية</option>
+      <option value="جماعية">جماعية</option>
+    </select>
+    <select class="filter-select" id="ses-period-filter" onchange="filterSes()">
+      <option value="all">الفترة - الكل</option>
+      <option value="صباحي">صباحي</option>
+      <option value="مسائي">مسائي</option>
+    </select>
+    <select class="filter-select" id="ses-service-filter" onchange="filterSes()">
+      <option value="all">الخدمة - الكل</option>
+      <option value="S001">S001</option>
+      <option value="S002">S002</option>
+      <option value="S003">S003</option>
+      <option value="S004">S004</option>
+      <option value="S005">S005</option>
+    </select>
+    <button class="filter-btn" onclick="resetSesFilter()">↺ إعادة تعيين</button>
+  </div>
+
+  <div class="kpi-grid" id="ses-kpis">
     <div class="kpi-card amber">
       <div class="kpi-icon">📋</div>
       <div class="kpi-value">140</div>
@@ -904,7 +939,31 @@
 <section id="section-financial" class="section">
   <div class="section-title">💰 التحليل المالي</div>
 
-  <div class="kpi-grid">
+  <div class="filter-bar">
+    <span class="filter-label">🔍 تصفية:</span>
+    <select class="filter-select" id="fin-type-filter" onchange="filterFin()">
+      <option value="all">نوع التحصيل - الكل</option>
+      <option value="سند قبض">سند قبض</option>
+      <option value="إعفاء">إعفاء</option>
+    </select>
+    <select class="filter-select" id="fin-method-filter" onchange="filterFin()">
+      <option value="all">طريقة الدفع - الكل</option>
+      <option value="جهة داعمة">جهة داعمة</option>
+      <option value="إعفاء حكومي">إعفاء حكومي</option>
+      <option value="تحويل">تحويل</option>
+      <option value="شبكة">شبكة</option>
+      <option value="نقدي">نقدي</option>
+    </select>
+    <select class="filter-select" id="fin-amount-filter" onchange="filterFin()">
+      <option value="all">المبلغ - الكل</option>
+      <option value="low">أقل من 2000</option>
+      <option value="mid">2000 - 2500</option>
+      <option value="high">أكثر من 2500</option>
+    </select>
+    <button class="filter-btn" onclick="resetFinFilter()">↺ إعادة تعيين</button>
+  </div>
+
+  <div class="kpi-grid" id="fin-kpis">
     <div class="kpi-card green">
       <div class="kpi-icon">💰</div>
       <div class="kpi-value">447,300</div>
@@ -1897,7 +1956,71 @@ function initSessionCharts() {
 
 function renderSesTable() {
   const ses = DB.sessions.length ? DB.sessions : buildDemoSessions();
+  updateSesKPIs(ses);
   renderSesPage(ses, 1, 20);
+}
+
+function updateSesKPIs(data) {
+  const total   = data.length;
+  const done    = data.filter(s=>s.status==='تمت').length;
+  const cancel  = data.filter(s=>s.status==='ملغاة').length;
+  const single  = data.filter(s=>s.type==='فردية').length;
+  const group   = data.filter(s=>s.type==='جماعية').length;
+  const rate    = total ? Math.round((done/total)*100) : 0;
+
+  const cards = document.querySelectorAll('#ses-kpis .kpi-card');
+  const setCard = (i, val, badge) => {
+    if (!cards[i]) return;
+    cards[i].querySelector('.kpi-value').textContent = val;
+    const b = cards[i].querySelector('.kpi-badge');
+    if (b && badge !== undefined) b.textContent = badge;
+  };
+  setCard(0, total);
+  setCard(1, done,   rate + '%');
+  setCard(2, cancel, (100-rate) + '%');
+  setCard(3, single, Math.round((single/Math.max(total,1))*100) + '%');
+  setCard(4, group,  Math.round((group/Math.max(total,1))*100) + '%');
+}
+
+function filterSes() {
+  const c = document.getElementById('ses-center-filter').value;
+  const s = document.getElementById('ses-status-filter').value;
+  const t = document.getElementById('ses-type-filter').value;
+  const p = document.getElementById('ses-period-filter').value;
+  const sv = document.getElementById('ses-service-filter').value;
+  const src = DB.sessions.length ? DB.sessions : buildDemoSessions();
+  const filtered = src.filter(r =>
+    (c==='all'  || r.center===c)  &&
+    (s==='all'  || r.status===s)  &&
+    (t==='all'  || r.type===t)    &&
+    (p==='all'  || r.period===p)  &&
+    (sv==='all' || r.service===sv)
+  );
+  updateSesKPIs(filtered);
+  initSessionChartsFiltered(filtered);
+  renderSesPage(filtered, 1, 20);
+}
+
+function resetSesFilter() {
+  ['ses-center-filter','ses-status-filter','ses-type-filter','ses-period-filter','ses-service-filter']
+    .forEach(id => document.getElementById(id).value = 'all');
+  renderSesTable();
+  initSessionCharts();
+}
+
+function initSessionChartsFiltered(ses) {
+  const srvMap = countBy(ses,'service');
+  const srvLabels = Object.keys(srvMap).sort();
+  makeChart('sesService','bar', srvLabels,
+    [{label:'عدد الجلسات', data:srvLabels.map(s=>srvMap[s]),
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple,COLORS.red], borderRadius:6}]);
+  const morning = ses.filter(s=>s.period==='صباحي');
+  const evening = ses.filter(s=>s.period==='مسائي');
+  makeChart('sesPeriod','bar',['صباحي','مسائي'],
+    [
+      {label:'فردية',  data:[morning.filter(s=>s.type==='فردية').length,  evening.filter(s=>s.type==='فردية').length],  backgroundColor:COLORS.blue+'cc',  borderRadius:6},
+      {label:'جماعية', data:[morning.filter(s=>s.type==='جماعية').length, evening.filter(s=>s.type==='جماعية').length], backgroundColor:COLORS.amber+'cc', borderRadius:6}
+    ]);
 }
 function renderSesPage(data, page, pageSize) {
   renderPage('ses-tbody', data, page, pageSize||20, s=>`
@@ -1935,7 +2058,65 @@ function initFinCharts() {
 
 function renderFinTable() {
   const pay = DB.payments.length ? DB.payments : buildDemoPayments();
+  updateFinKPIs(pay);
   renderFinPage(pay, 1, 20);
+}
+
+function updateFinKPIs(data) {
+  const total     = data.reduce((s,p)=>s+(Number(p.amount)||0), 0);
+  const receipts  = data.filter(p=>p.type==='سند قبض');
+  const exempts   = data.filter(p=>p.type==='إعفاء');
+  const avgAmt    = data.length ? Math.round(total/data.length) : 0;
+  const pct       = data.length ? Math.round((receipts.length/data.length)*100) : 0;
+
+  const cards = document.querySelectorAll('#fin-kpis .kpi-card');
+  const setCard = (i, val, badge) => {
+    if (!cards[i]) return;
+    cards[i].querySelector('.kpi-value').textContent = val;
+    const b = cards[i].querySelector('.kpi-badge');
+    if (b && badge !== undefined) b.textContent = badge;
+  };
+  setCard(0, total.toLocaleString());
+  setCard(1, receipts.length, pct + '%');
+  setCard(2, exempts.length,  (100-pct) + '%');
+  setCard(3, avgAmt.toLocaleString());
+}
+
+function filterFin() {
+  const t  = document.getElementById('fin-type-filter').value;
+  const m  = document.getElementById('fin-method-filter').value;
+  const am = document.getElementById('fin-amount-filter').value;
+  const src = DB.payments.length ? DB.payments : buildDemoPayments();
+  const filtered = src.filter(p => {
+    const amt = Number(p.amount) || 0;
+    const amtOk = am==='all' || (am==='low' && amt<2000) || (am==='mid' && amt>=2000 && amt<=2500) || (am==='high' && amt>2500);
+    return (t==='all' || p.type===t) && (m==='all' || p.method===m) && amtOk;
+  });
+  updateFinKPIs(filtered);
+  initFinChartsFiltered(filtered);
+  renderFinPage(filtered, 1, 20);
+}
+
+function resetFinFilter() {
+  ['fin-type-filter','fin-method-filter','fin-amount-filter']
+    .forEach(id => document.getElementById(id).value = 'all');
+  renderFinTable();
+  initFinCharts();
+}
+
+function initFinChartsFiltered(pay) {
+  const ben = DB.beneficiaries.length ? DB.beneficiaries : buildDemoBen();
+  const methodMap = countBy(pay,'method');
+  const mLabels = Object.keys(methodMap);
+  makeChart('payMethod','doughnut', mLabels.length ? mLabels : ['لا بيانات'],
+    [{data: mLabels.length ? mLabels.map(m=>methodMap[m]) : [1],
+      backgroundColor:[COLORS.green,COLORS.blue,COLORS.amber,COLORS.purple,COLORS.red],
+      borderWidth:0, hoverOffset:8}], {cutout:'60%'});
+  const feeMap = countBy(ben,'feeType');
+  const fLabels = Object.keys(feeMap);
+  makeChart('feeTypeFin','bar', fLabels,
+    [{label:'عدد المستفيدين', data:fLabels.map(f=>feeMap[f]),
+      backgroundColor:PALETTE.slice(0,fLabels.length).map(c=>c+'cc'), borderRadius:6}]);
 }
 function renderFinPage(data, page, pageSize) {
   renderPage('fin-tbody', data, page, pageSize||20, p=>`
