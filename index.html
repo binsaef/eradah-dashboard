@@ -455,36 +455,6 @@
         <p>لوحة المؤشرات التحليلية — ERADAH ANALYTICS</p>
       </div>
     </div>
-    <!-- TIME FILTER INLINE -->
-    <div class="time-filter-inline">
-      <span class="tf-label">📅 الفترة:</span>
-      <div class="tf-mode-tabs">
-        <button class="tf-mode-btn active" id="tf-mode-range"   onclick="setTimeMode('range')">بين تاريخين</button>
-        <button class="tf-mode-btn"        id="tf-mode-quarter" onclick="setTimeMode('quarter')">الأرباع</button>
-      </div>
-      <div class="tf-inputs-wrap" id="tf-inputs-range">
-        <span class="tf-sep">من</span>
-        <input type="date" class="tf-date-input" id="date-from">
-        <span class="tf-sep">إلى</span>
-        <input type="date" class="tf-date-input" id="date-to">
-      </div>
-      <div class="tf-inputs-wrap" id="tf-inputs-quarter" style="display:none">
-        <select class="tf-select" id="quarter-year">
-          <option value="2026">2026</option><option value="2025">2025</option>
-          <option value="2024">2024</option><option value="2023">2023</option>
-        </select>
-        <select class="tf-select" id="quarter-q">
-          <option value="1">Q1 — يناير/مارس</option>
-          <option value="2">Q2 — أبريل/يونيو</option>
-          <option value="3">Q3 — يوليو/سبتمبر</option>
-          <option value="4">Q4 — أكتوبر/ديسمبر</option>
-        </select>
-      </div>
-      <button class="tf-apply" onclick="applyTimeFilter()">⚡ تطبيق</button>
-      <button class="tf-reset" onclick="resetTimeFilter()" title="إلغاء الفلتر">✕</button>
-      <div class="tf-active-pill" id="tf-active-pill">🕐 <span id="tf-active-label"></span></div>
-    </div>
-
     <div class="header-meta">
       <div class="live-badge">
         <div class="live-dot"></div>
@@ -507,45 +477,68 @@
 </nav>
 
 
-  <div class="time-mode-tabs">
-    <button class="time-mode-btn active" id="mode-range" onclick="setTimeMode('range')">بين تاريخين</button>
-    <button class="time-mode-btn" id="mode-quarter" onclick="setTimeMode('quarter')">الأرباع</button>
-  </div>
+<!-- TIME FILTER BAR — شريط الفترة الزمنية -->
+<div class="tf-bar">
+  <div class="tf-bar-inner">
 
-  <!-- بين تاريخين -->
-  <div class="time-inputs" id="inputs-range">
-    <span class="time-separator">من</span>
-    <input type="date" class="time-input" id="date-from" />
-    <span class="time-separator">إلى</span>
-    <input type="date" class="time-input" id="date-to" />
-  </div>
+    <div class="tf-bar-right">
+      <span class="tf-bar-icon">📅</span>
+      <span class="tf-bar-title">الفترة الزمنية</span>
+      <div class="tf-mode-tabs">
+        <button class="tf-mode-btn active" id="tf-mode-range"   onclick="setTimeMode('range')">بين تاريخين</button>
+        <button class="tf-mode-btn"        id="tf-mode-quarter" onclick="setTimeMode('quarter')">الأرباع</button>
+      </div>
+    </div>
 
-  <!-- الأرباع -->
-  <div class="time-inputs" id="inputs-quarter" style="display:none">
-    <select class="quarter-select" id="quarter-year">
-      <option value="2026">2026</option>
-      <option value="2025">2025</option>
-      <option value="2024">2024</option>
-      <option value="2023">2023</option>
-    </select>
-    <select class="quarter-select" id="quarter-q">
-      <option value="1">الربع الأول (يناير - مارس)</option>
-      <option value="2">الربع الثاني (أبريل - يونيو)</option>
-      <option value="3">الربع الثالث (يوليو - سبتمبر)</option>
-      <option value="4">الربع الرابع (أكتوبر - ديسمبر)</option>
-    </select>
-  </div>
+    <div class="tf-bar-center">
+      <!-- بين تاريخين -->
+      <div class="tf-inputs-wrap" id="tf-inputs-range">
+        <div class="tf-field">
+          <label class="tf-field-lbl">من</label>
+          <input type="date" class="tf-date-input" id="date-from">
+        </div>
+        <div class="tf-divider">←</div>
+        <div class="tf-field">
+          <label class="tf-field-lbl">إلى</label>
+          <input type="date" class="tf-date-input" id="date-to">
+        </div>
+      </div>
+      <!-- الأرباع -->
+      <div class="tf-inputs-wrap" id="tf-inputs-quarter" style="display:none">
+        <div class="tf-field">
+          <label class="tf-field-lbl">السنة</label>
+          <select class="tf-select" id="quarter-year">
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
+        <div class="tf-field">
+          <label class="tf-field-lbl">الربع</label>
+          <select class="tf-select" id="quarter-q">
+            <option value="1">◼ Q1 — يناير إلى مارس</option>
+            <option value="2">◼ Q2 — أبريل إلى يونيو</option>
+            <option value="3">◼ Q3 — يوليو إلى سبتمبر</option>
+            <option value="4">◼ Q4 — أكتوبر إلى ديسمبر</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-  <button class="time-apply-btn" onclick="applyTimeFilter()">⚡ تطبيق</button>
-  <button class="time-reset-btn" onclick="resetTimeFilter()">✕ إلغاء الفلتر</button>
+    <div class="tf-bar-left">
+      <button class="tf-apply-btn" onclick="applyTimeFilter()">
+        <span>⚡</span> تطبيق
+      </button>
+      <button class="tf-reset-btn" onclick="resetTimeFilter()">
+        <span>✕</span> إلغاء
+      </button>
+      <div class="tf-active-pill" id="tf-active-pill">
+        <span class="tf-pill-dot"></span>
+        <span id="tf-active-label">—</span>
+      </div>
+    </div>
 
-  <div class="time-active-badge" id="timeActiveBadge">
-    <span>🕐</span>
-    <span id="timeActiveLabel"></span>
-  </div>
-
-  <div class="time-snapshot-info" id="timeSnapshotInfo" style="display:none">
-    📸 لقطة الحالة: نهاية الفترة
   </div>
 </div>
 
