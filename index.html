@@ -832,6 +832,9 @@ body {
     <div class="topbar-actions">
       <div class="live-dot" title="البيانات محدّثة"></div>
       <button class="topbar-btn" onclick="refreshData()"><i class="fas fa-sync-alt"></i> تحديث</button>
+      <button class="topbar-btn" id="btn-live-refresh" onclick="loadFromGoogleSheets()" title="تحديث من Google Sheets">
+        <i class="fas fa-cloud-download-alt" style="color:var(--emerald-lite)"></i> Sheets
+      </button>
       <button class="topbar-btn primary" onclick="window.print()"><i class="fas fa-file-pdf"></i> تصدير</button>
     </div>
   </div>
@@ -1718,7 +1721,7 @@ body {
         <div class="chart-header"><div><div class="chart-title">🔗 رابط Google Apps Script Web App</div></div></div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <input type="text" id="sheet-api-url"
-            placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="https://script.google.com/macros/s/AKfycbzU-j5CX_2sLARq1Xw-MJ1gnKwuf6YUZVDoXfUUwlNWTEyXoenU4W71m9QBkZ9YUlY/exec"
+            placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="https://script.google.com/macros/s/AKfycbx0ow8snWjnzqYrHiKNLm0PAvDnxrsBP7Cp2XLErWS0CQyFXYc8ytFhHAtiGrLW7wo/exec"
             style="flex:1;min-width:300px;background:var(--glass-bg);border:1px solid var(--glass-border);
                    border-radius:var(--radius-sm);color:var(--white);padding:10px 14px;
                    font-size:13px;font-family:inherit;direction:ltr">
@@ -1929,13 +1932,19 @@ const tooltipOpts = {
 // INIT ALL CHARTS
 // ============================================================
 function initAllCharts() {
-  initOverviewCharts();
-  initBeneficiaryCharts();
-  initEmployeeCharts();
-  initSessionCharts();
-  initFinancialCharts();
-  initAbsenceCharts();
-  initAdminCharts();
+  var fns = [
+    initOverviewCharts,
+    initBeneficiaryCharts,
+    initEmployeeCharts,
+    initSessionCharts,
+    initFinancialCharts,
+    initAbsenceCharts,
+    initAdminCharts
+  ];
+  fns.forEach(function(fn) {
+    try { fn(); }
+    catch(e) { console.warn('Chart init error in ' + fn.name + ':', e.message); }
+  });
 }
 
 // ---- OVERVIEW ----
@@ -2439,7 +2448,9 @@ function toggleSidebar() {
 function refreshData() {
   const btn = document.querySelector('.topbar-btn i.fa-sync-alt');
   if (btn) { btn.style.animation = 'spin 0.8s linear infinite'; setTimeout(() => btn.style.animation = '', 1000); }
-  document.getElementById('last-update-time').textContent = new Date().toLocaleTimeString('ar-SA');
+  const el = document.getElementById('last-update-time');
+  if (el) el.textContent = new Date().toLocaleTimeString('ar-SA');
+  loadFromGoogleSheets();
 }
 
 // ============================================================
@@ -2883,7 +2894,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 var _autoRefreshTimer = null;
 var _loadCount = 0;
-var SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzU-j5CX_2sLARq1Xw-MJ1gnKwuf6YUZVDoXfUUwlNWTEyXoenU4W71m9QBkZ9YUlY/exec';
+var SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx0ow8snWjnzqYrHiKNLm0PAvDnxrsBP7Cp2XLErWS0CQyFXYc8ytFhHAtiGrLW7wo/exec';
 
 function initSheetConnector() {
   // Use hardcoded URL as default, override with localStorage if user changed it
@@ -2914,57 +2925,187 @@ async function connectAndLoad() {
 }
 
 async function loadFromGoogleSheets() {
-  if (!SHEET_API_URL) return;
-  setConnectionStatus('loading', 'جارٍ تحميل البيانات...');
+  if (!SHEET_API_URL) {
+    setConnectionStatus('error', 'الرابط غير موجود — أدخله في صفحة الربط');
+    return;
+  }
+  setConnectionStatus('loading', 'جارٍ تحميل البيانات من Google Sheets...');
   var t0 = Date.now();
   try {
-    var res  = await fetch(SHEET_API_URL + '?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var data = await res.json();
-    if (data.error) throw new Error(data.message);
+    // إضافة timestamp لتجاوز الكاش + no-cache headers
+    var url = SHEET_API_URL + (SHEET_API_URL.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    console.log('🔄 Fetching:', url);
+
+    var res = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      redirect: 'follow'
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText);
+
+    var text = await res.text();
+    console.log('📥 Raw response (first 200):', text.substring(0,200));
+
+    var data;
+    try {
+      data = JSON.parse(text);
+    } catch(parseErr) {
+      throw new Error('استجابة غير صالحة — تأكد من إعدادات Deploy');
+    }
+
+    if (data.error) throw new Error(data.message || 'خطأ في Apps Script');
+
+    // ✅ تطبيق البيانات
     applyLiveData(data);
+
     var ms = Date.now() - t0;
     _loadCount++;
-    setConnectionStatus('connected', 'متصل ✅ — بيانات مباشرة من Google Sheets');
-    var ts = new Date(data.generated_at).toLocaleString('ar-SA');
+
+    // تحديث الواجهة
+    var ts = data.generated_at
+      ? new Date(data.generated_at).toLocaleString('ar-SA')
+      : new Date().toLocaleString('ar-SA');
+
+    setConnectionStatus('connected',
+      '✅ متصل — آخر تحديث: ' + ts + ' | مدة الاستجابة: ' + ms + 'ms');
+
     ['last-sheet-update','last-update-time'].forEach(function(id){
       var el=document.getElementById(id); if(el) el.textContent=ts;
     });
-    var rt=document.getElementById('last-response-time'); if(rt) rt.textContent=ms+' ms';
+    var rt=document.getElementById('last-response-time'); if(rt) rt.textContent=ms+'ms';
     var lc=document.getElementById('load-count'); if(lc) lc.textContent=_loadCount;
+
+    // حفظ الرابط
+    localStorage.setItem('eradah_sheet_url', SHEET_API_URL);
+
   } catch(err) {
-    setConnectionStatus('error', 'خطأ: ' + err.message);
+    console.error('❌ Sheets fetch error:', err);
+    setConnectionStatus('error',
+      '❌ ' + err.message + ' — افتح Console (F12) للتفاصيل');
   }
 }
 
 function applyLiveData(liveData) {
-  if (liveData.kpi)           Object.assign(DATA.kpi,           liveData.kpi);
-  if (liveData.employees)     Object.assign(DATA.employees,     liveData.employees);
-  if (liveData.beneficiaries) Object.assign(DATA.beneficiaries, liveData.beneficiaries);
-  if (liveData.sessions)      Object.assign(DATA.sessions,      liveData.sessions);
-  if (liveData.absence)       Object.assign(DATA.absence,       liveData.absence);
-  if (liveData.admin)         Object.assign(DATA.admin,         liveData.admin);
-  if (liveData.financial)     Object.assign(DATA.financial,     liveData.financial);
-  if (liveData.diagnoses)     Object.assign(DATA.diagnoses,     liveData.diagnoses);
-  initAllCharts();
-  animateCounters();
+  console.log('📊 Applying live data from Sheets...', liveData);
+
+  // ① استبدال كامل للبيانات
+  if (liveData.kpi)           DATA.kpi           = liveData.kpi;
+  if (liveData.employees)     DATA.employees     = liveData.employees;
+  if (liveData.beneficiaries) DATA.beneficiaries = liveData.beneficiaries;
+  if (liveData.sessions)      DATA.sessions      = liveData.sessions;
+  if (liveData.absence)       DATA.absence       = liveData.absence;
+  if (liveData.admin)         DATA.admin         = liveData.admin;
+  if (liveData.financial)     DATA.financial     = liveData.financial;
+  if (liveData.diagnoses)     DATA.diagnoses     = liveData.diagnoses;
+
+  // ② تحديث KPI cards بالأرقام الجديدة
+  updateLiveKPIs(liveData.kpi);
+
+  // ③ إعادة رسم جميع الرسوم (بعد تحديث DATA)
+  // نستخدم setTimeout لضمان انتهاء تحديث DOM أولاً
+  setTimeout(function() {
+    try { initAllCharts(); } catch(e) { console.warn('initAllCharts error:', e); }
+  }, 50);
+
+  // ④ تحديث badges القائمة الجانبية
+  updateSidebarBadges(liveData);
+
+  console.log('✅ Live data applied successfully');
+}
+
+function updateLiveKPIs(kpi) {
+  if (!kpi) return;
+
+  function animateNum(el, target) {
+    if (!el) return;
+    var tgt = parseInt(target) || 0;
+    var cur = 0, step = Math.max(1, Math.ceil(tgt/50));
+    var t = setInterval(function(){
+      cur = Math.min(cur+step, tgt);
+      el.textContent = cur.toLocaleString('ar-SA');
+      if(cur >= tgt) clearInterval(t);
+    }, 18);
+  }
+
+  // KPI cards في صفحة النظرة العامة
+  var map = [
+    { sel: '#page-overview .kpi-card.blue .kpi-value',   val: kpi.total_beneficiaries },
+    { sel: '#page-overview .kpi-card.green .kpi-value',  val: kpi.total_employees },
+    { sel: '#page-overview .kpi-card.amber .kpi-value',  val: kpi.total_sessions },
+    { sel: '#page-overview .kpi-card.rose .kpi-value',   val: kpi.total_absence },
+    { sel: '#page-overview .kpi-card.sky .kpi-value',    val: kpi.num_centers }
+  ];
+  map.forEach(function(m){
+    var el = document.querySelector(m.sel);
+    if (el && m.val !== undefined) animateNum(el, m.val);
+  });
+
+  // KPI التحصيل المالي (K format)
+  var collEl = document.getElementById('kpi-collection');
+  if (collEl && kpi.total_collection !== undefined) {
+    var v=0, tgt=kpi.total_collection, s=Math.max(1,Math.ceil(tgt/50));
+    var t2=setInterval(function(){
+      v=Math.min(v+s,tgt);
+      collEl.textContent=(v/1000).toFixed(1)+'K';
+      if(v>=tgt)clearInterval(t2);
+    },18);
+  }
+
+  // تحديث sub-text تحت الـ KPI cards
+  var sessCard = document.querySelector('#page-overview .kpi-card.amber .kpi-sub');
+  if (sessCard && kpi.completed_sessions !== undefined) {
+    var pct = kpi.total_sessions > 0
+      ? ((kpi.completed_sessions / kpi.total_sessions)*100).toFixed(1) : 0;
+    sessCard.textContent = kpi.completed_sessions + ' مكتملة (' + pct + '%)';
+  }
+
+  // تحديث KPI cards في باقي الصفحات
+  var finPct = document.querySelector('#page-financial .kpi-card.rose .kpi-value');
+  if (finPct && kpi.total_collection !== undefined && kpi.total_fees_expected > 0) {
+    var p = ((kpi.total_collection / kpi.total_fees_expected)*100).toFixed(1);
+    finPct.textContent = p + '%';
+  }
+}
+
+function updateSidebarBadges(liveData) {
+  // تحديث الأرقام في القائمة الجانبية
+  var badgeMap = {
+    'beneficiaries': liveData.kpi && liveData.kpi.total_beneficiaries,
+    'employees':     liveData.kpi && liveData.kpi.total_employees,
+    'sessions':      liveData.kpi && liveData.kpi.total_sessions
+  };
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    var onclick = item.getAttribute('onclick')||'';
+    var match = onclick.match(/showPage\('(\w+)'\)/);
+    if(!match) return;
+    var page = match[1];
+    var badge = item.querySelector('.nav-badge');
+    if(badge && badgeMap[page]) badge.textContent = badgeMap[page];
+  });
 }
 
 async function testConnection() {
   var inp = document.getElementById('sheet-api-url');
-  var url = inp ? inp.value.trim() : SHEET_API_URL;
+  var url = (inp ? inp.value.trim() : '') || SHEET_API_URL;
   if (!url) { alert('أدخل الرابط أولاً'); return; }
-  setConnectionStatus('loading', 'جارٍ الاختبار...');
+  SHEET_API_URL = url;
+  setConnectionStatus('loading', 'جارٍ اختبار الاتصال...');
   try {
-    var res  = await fetch(url + '?t=' + Date.now());
-    var data = await res.json();
+    var res  = await fetch(url + '?_t=' + Date.now(), { cache:'no-store', redirect:'follow' });
+    var text = await res.text();
+    var data = JSON.parse(text);
     if (data.error) throw new Error(data.message);
     setConnectionStatus('connected',
-      '✅ ناجح! موظفين: '+(data.kpi.total_employees||'?')+
-      ' | مستفيدين: '+(data.kpi.total_beneficiaries||'?')+
-      ' | جلسات: '+(data.kpi.total_sessions||'?'));
+      '✅ الاتصال ناجح! | موظفين: '+(data.kpi&&data.kpi.total_employees||'?')+
+      ' | مستفيدين: '+(data.kpi&&data.kpi.total_beneficiaries||'?')+
+      ' | جلسات: '+(data.kpi&&data.kpi.total_sessions||'?')+
+      ' | تحصيل: '+((data.kpi&&data.kpi.total_collection||0).toLocaleString('ar-SA'))+' ر.س');
+    // تحميل كامل بعد نجاح الاختبار
+    setTimeout(function(){ applyLiveData(data); }, 500);
   } catch(err) {
-    setConnectionStatus('error', '❌ فشل: ' + err.message);
+    setConnectionStatus('error', '❌ ' + err.message);
+    console.error('Test error:', err);
   }
 }
 
@@ -3000,12 +3141,39 @@ function setConnectionStatus(state, msg) {
   var txt  = document.getElementById('conn-msg');
   var stxt = document.getElementById('conn-status-text');
   var box  = document.getElementById('connection-status-box');
-  var colors = { connected:'var(--emerald)',loading:'var(--amber)',error:'var(--rose)',disconnected:'var(--gray-400)',saved:'var(--sky)' };
-  var labels = { connected:'متصل',loading:'جارٍ التحميل',error:'خطأ',disconnected:'غير متصل',saved:'محفوظ' };
-  var col = colors[state]||'var(--gray-400)';
-  if(dot)  dot.style.color=col;
-  if(txt)  txt.textContent=msg;
-  if(stxt) { stxt.textContent=labels[state]||state; stxt.style.color=col; }
+  var liveDot = document.querySelector('.live-dot');
+  var colors = {
+    connected:    '#10b981',
+    loading:      '#f59e0b',
+    error:        '#f43f5e',
+    disconnected: '#94a3b8',
+    saved:        '#0ea5e9'
+  };
+  var labels = {
+    connected:'متصل ✅', loading:'جارٍ التحميل...', error:'خطأ ❌',
+    disconnected:'غير متصل', saved:'محفوظ'
+  };
+  var col = colors[state] || '#94a3b8';
+  if (dot)  { dot.style.color = col; dot.style.fontSize = '10px'; }
+  if (txt)  { txt.textContent = msg; txt.style.color = col === '#94a3b8' ? '' : col; }
+  if (stxt) { stxt.textContent = labels[state]||state; stxt.style.color = col; }
+  if (box)  { box.style.borderColor = col; }
+  // تحديث نقطة الحياة في الـ topbar
+  if (liveDot) {
+    liveDot.style.background = col;
+    liveDot.title = labels[state] || state;
+  }
+  // إضافة spinner للـ loading
+  var btn = document.getElementById('btn-live-refresh');
+  if (btn) {
+    var icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = state === 'loading'
+        ? 'fas fa-spinner fa-spin'
+        : 'fas fa-cloud-download-alt';
+      icon.style.color = col;
+    }
+  }
 }
 
 
