@@ -904,51 +904,9 @@ body {
       </button>
     </div>
 
-    <!-- Extra filters row -->
-    <div class="extra-filters">
-      <span class="extra-filter-label"><i class="fas fa-sliders-h" style="margin-left:4px"></i>فلاتر إضافية:</span>
-
-      <select class="filter-select" id="f-center" onchange="markFilterDirty()">
-        <option value="">🏢 جميع المراكز</option>
-        <option>مكة</option><option>نجد</option><option>القدس</option><option>جلمودة</option>
-      </select>
-
-      <select class="filter-select" id="f-period" onchange="markFilterDirty()">
-        <option value="">🕐 جميع الفترات</option>
-        <option>صباحي</option><option>مسائي</option>
-      </select>
-
-      <select class="filter-select" id="f-service" onchange="markFilterDirty()">
-        <option value="">🩺 جميع الخدمات</option>
-        <option>العلاج الوظيفي</option><option>النطق والتواصل</option>
-        <option>العلاج الطبيعي</option><option>الإرشاد الأسري</option>
-        <option>التأهيل النفسي</option><option>التأهيل النفسي الحركي</option>
-        <option>الصحة العامة</option><option>التربية الخاصة</option>
-        <option>الخدمة الاجتماعية</option>
-      </select>
-
-      <select class="filter-select" id="f-gender" onchange="markFilterDirty()">
-        <option value="">👤 الجنس</option>
-        <option>ذكر</option><option>أنثى</option>
-      </select>
-
-      <select class="filter-select" id="f-program" onchange="markFilterDirty()">
-        <option value="">📋 نوع البرنامج</option>
-        <option>فصول</option><option>جلسات فردية</option><option>كلاهما</option>
-      </select>
-
-      <select class="filter-select" id="f-status" onchange="markFilterDirty()">
-        <option value="">📌 حالة الجلسة</option>
-        <option>تمت</option><option>ملغاة</option><option>مؤجلة</option><option>لم تتم</option>
-      </select>
-
-      <div style="flex:1"></div>
-      <button class="filter-apply-btn" onclick="applyFilter()">
-        <i class="fas fa-filter"></i> تطبيق الفلاتر
-      </button>
-      <button class="filter-reset-btn" onclick="resetFilters()">
-        <i class="fas fa-undo"></i> إعادة تعيين
-      </button>
+    <!-- Extra filters row — DYNAMIC per page -->
+    <div class="extra-filters" id="extraFiltersRow">
+      <!-- Populated dynamically by renderPageFilters() -->
     </div>
 
     <!-- Active filter chips -->
@@ -989,7 +947,7 @@ body {
           </div>
           <div class="kpi-value" data-count="100">0</div>
           <div class="kpi-label">إجمالي الموظفين</div>
-          <div class="kpi-sub">79 أخصائي · 21 إداري</div>
+          <div class="kpi-sub">79 فني · 21 إداري</div>
         </div>
         <div class="kpi-card amber">
           <div class="kpi-top">
@@ -1296,7 +1254,7 @@ body {
             <canvas id="chart-emp-type"></canvas>
           </div>
           <div class="donut-legend">
-            <div class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span><span class="legend-name">أخصائيون</span><span class="legend-val">79%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span><span class="legend-name">فنيون</span><span class="legend-val">79%</span></div>
             <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span><span class="legend-name">إداريون</span><span class="legend-val">21%</span></div>
           </div>
         </div>
@@ -1344,24 +1302,39 @@ body {
         </div>
       </div>
 
-      <div class="stats-row">
-        <div class="stat-mini"><div class="stat-mini-val" style="color:var(--emerald-lite)">272</div><div class="stat-mini-lbl">جلسات مكتملة</div></div>
+      <div class="stats-row" style="grid-template-columns:repeat(6,1fr)">
+        <div class="stat-mini"><div class="stat-mini-val" style="color:var(--emerald-lite)">272</div><div class="stat-mini-lbl">مكتملة</div></div>
         <div class="stat-mini"><div class="stat-mini-val" style="color:var(--rose)">88</div><div class="stat-mini-lbl">ملغاة</div></div>
         <div class="stat-mini"><div class="stat-mini-val" style="color:var(--amber)">61</div><div class="stat-mini-lbl">مؤجلة</div></div>
         <div class="stat-mini"><div class="stat-mini-val" style="color:var(--gray-400)">79</div><div class="stat-mini-lbl">لم تتم</div></div>
+        <div class="stat-mini"><div class="stat-mini-val" style="color:var(--indigo-lite)">354</div><div class="stat-mini-lbl">جلسات فردية</div></div>
+        <div class="stat-mini"><div class="stat-mini-val" style="color:var(--purple)">146</div><div class="stat-mini-lbl">خدمات</div></div>
       </div>
 
-      <div class="charts-grid col-2">
+      <div class="charts-grid col-3">
         <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">الجلسات الشهرية التفصيلية</div></div></div>
-          <div class="chart-container" style="height:240px">
+          <div class="chart-header"><div><div class="chart-title">الجلسات الشهرية</div></div></div>
+          <div class="chart-container" style="height:220px">
             <canvas id="chart-sessions-detail"></canvas>
           </div>
         </div>
         <div class="chart-card">
           <div class="chart-header"><div><div class="chart-title">الخدمات الأكثر طلباً</div></div></div>
-          <div class="chart-container" style="height:240px">
+          <div class="chart-container" style="height:220px">
             <canvas id="chart-services"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div>
+            <div class="chart-title">نوع الخدمة</div>
+            <div class="chart-subtitle">جلسات فردية مقابل خدمات</div>
+          </div></div>
+          <div class="chart-container" style="height:160px">
+            <canvas id="chart-sess-type"></canvas>
+          </div>
+          <div class="donut-legend" style="margin-top:12px">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span><span class="legend-name">جلسات فردية</span><span class="legend-val">354 (70.8%)</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span><span class="legend-name">خدمات</span><span class="legend-val">146 (29.2%)</span></div>
           </div>
         </div>
       </div>
@@ -1398,17 +1371,18 @@ body {
           <div class="chart-header"><div><div class="chart-title">الخدمات — تفصيلي</div></div></div>
           <div class="data-table-wrap">
             <table class="data-table">
-              <thead><tr><th>الخدمة</th><th>عدد الجلسات</th><th>النسبة</th></tr></thead>
+              <thead><tr><th>الخدمة</th><th>عدد الجلسات</th><th>النسبة</th><th>النوع</th></tr></thead>
               <tbody>
-                <tr><td>العلاج الوظيفي</td><td><strong>90</strong></td><td><span class="badge blue">18.0%</span></td></tr>
-                <tr><td>الإرشاد الأسري</td><td><strong>71</strong></td><td><span class="badge green">14.2%</span></td></tr>
-                <tr><td>النطق والتواصل</td><td><strong>69</strong></td><td><span class="badge green">13.8%</span></td></tr>
-                <tr><td>العلاج الطبيعي</td><td><strong>62</strong></td><td><span class="badge amber">12.4%</span></td></tr>
-                <tr><td>التأهيل النفسي</td><td><strong>51</strong></td><td><span class="badge amber">10.2%</span></td></tr>
-                <tr><td>التأهيل النفسي الحركي</td><td><strong>44</strong></td><td><span class="badge purple">8.8%</span></td></tr>
-                <tr><td>الصحة العامة</td><td><strong>43</strong></td><td><span class="badge gray">8.6%</span></td></tr>
-                <tr><td>التربية الخاصة</td><td><strong>38</strong></td><td><span class="badge gray">7.6%</span></td></tr>
-                <tr><td>الخدمة الاجتماعية</td><td><strong>32</strong></td><td><span class="badge gray">6.4%</span></td></tr>
+                <tr><td>العلاج الوظيفي</td><td><strong>90</strong></td><td><span class="badge blue">18.0%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>الإرشاد الأسري</td><td><strong>71</strong></td><td><span class="badge green">14.2%</span></td><td><span class="badge purple">خدمة</span></td></tr>
+                <tr><td>النطق والتواصل</td><td><strong>69</strong></td><td><span class="badge green">13.8%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>العلاج الطبيعي</td><td><strong>62</strong></td><td><span class="badge amber">12.4%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>التأهيل النفسي</td><td><strong>51</strong></td><td><span class="badge amber">10.2%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>التأهيل النفسي الحركي</td><td><strong>44</strong></td><td><span class="badge purple">8.8%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>التربية الخاصة</td><td><strong>38</strong></td><td><span class="badge gray">7.6%</span></td><td><span class="badge green">جلسة</span></td></tr>
+                <tr><td>الخدمة الاجتماعية</td><td><strong>32</strong></td><td><span class="badge gray">6.4%</span></td><td><span class="badge purple">خدمة</span></td></tr>
+                <tr><td>التغذية</td><td><strong>27</strong></td><td><span class="badge gray">5.4%</span></td><td><span class="badge purple">خدمة</span></td></tr>
+                <tr><td>التمريض</td><td><strong>16</strong></td><td><span class="badge gray">3.2%</span></td><td><span class="badge purple">خدمة</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -1729,275 +1703,123 @@ body {
         </div>
         <div>
           <h2>ربط Google Sheets المباشر</h2>
-          <p>كود Apps Script كامل لتوصيل اللوحة بملف الإكسل حياً عبر Google Sheets</p>
+          <p>بيانات حية تلقائية من ملف Google Sheets</p>
         </div>
       </div>
 
-      <div class="integration-box">
-        <h3><i class="fas fa-info-circle"></i> طريقة الربط (3 خطوات فقط)</h3>
-        <p>
-          <strong>الخطوة 1:</strong> ارفع ملف الإكسل إلى Google Drive وافتحه كـ Google Sheets.<br>
-          <strong>الخطوة 2:</strong> من القائمة: Extensions → Apps Script → انسخ الكود أدناه.<br>
-          <strong>الخطوة 3:</strong> انسخ رابط النشر (Deploy as Web App) وضعه في متغير <code>SHEET_API_URL</code> في ملف dashboard.js.
+      <!-- Connection Status -->
+      <div class="integration-box" id="connection-status-box" style="margin-bottom:20px">
+        <h3><i class="fas fa-circle" id="conn-dot" style="color:var(--gray-400);font-size:10px"></i> حالة الاتصال</h3>
+        <p id="conn-msg" style="color:var(--gray-400)">لم يتم الربط بعد — أدخل رابط Web App أدناه</p>
+      </div>
+
+      <!-- URL Input -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-header"><div><div class="chart-title">🔗 رابط Google Apps Script Web App</div></div></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="sheet-api-url"
+            placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="https://script.google.com/macros/s/AKfycbzU-j5CX_2sLARq1Xw-MJ1gnKwuf6YUZVDoXfUUwlNWTEyXoenU4W71m9QBkZ9YUlY/exec"
+            style="flex:1;min-width:300px;background:var(--glass-bg);border:1px solid var(--glass-border);
+                   border-radius:var(--radius-sm);color:var(--white);padding:10px 14px;
+                   font-size:13px;font-family:inherit;direction:ltr">
+          <button class="filter-apply-btn" onclick="connectAndLoad()" style="padding:10px 20px">
+            <i class="fas fa-link"></i> اتصال وتحميل
+          </button>
+          <button class="filter-reset-btn" onclick="testConnection()" style="padding:10px 16px">
+            <i class="fas fa-vial"></i> اختبار
+          </button>
+          <button class="filter-reset-btn" onclick="disconnectSheet()" style="padding:10px 16px">
+            <i class="fas fa-unlink"></i> قطع الاتصال
+          </button>
+        </div>
+        <p style="font-size:11px;color:var(--gray-400);margin-top:10px">
+          <i class="fas fa-info-circle"></i>
+          يُحفظ الرابط تلقائياً في المتصفح — لن تحتاج لإعادة إدخاله
         </p>
       </div>
 
+      <!-- Auto refresh -->
+      <div class="charts-grid col-2" style="margin-bottom:20px">
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">⚙️ إعدادات التحديث التلقائي</div></div></div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+              <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()"
+                style="width:16px;height:16px;accent-color:var(--indigo)">
+              <span style="font-size:13px">تحديث تلقائي</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:12px;color:var(--gray-400)">كل:</span>
+              <select id="refresh-interval" onchange="changeRefreshInterval()"
+                style="background:var(--glass-bg);border:1px solid var(--glass-border);
+                       border-radius:8px;color:var(--white);padding:6px 10px;font-family:inherit;font-size:12px">
+                <option value="60">دقيقة</option>
+                <option value="300" selected>5 دقائق</option>
+                <option value="600">10 دقائق</option>
+                <option value="1800">30 دقيقة</option>
+              </select>
+            </div>
+            <div style="font-size:12px;color:var(--gray-400)">
+              آخر تحديث: <span id="last-sheet-update">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">📊 إحصائيات الاتصال</div></div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span style="color:var(--gray-400)">عدد مرات التحميل:</span>
+              <span id="load-count" style="font-weight:600">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span style="color:var(--gray-400)">آخر مدة استجابة:</span>
+              <span id="last-response-time" style="font-weight:600">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span style="color:var(--gray-400)">حالة الاتصال:</span>
+              <span id="conn-status-text" style="font-weight:600;color:var(--gray-400)">غير متصل</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps guide -->
       <div class="chart-card" style="margin-bottom:20px">
-        <div class="chart-header"><div><div class="chart-title">📋 كود Google Apps Script — انسخه كاملاً</div></div></div>
-        <div class="code-block" id="apps-script-code">// ============================================================
-// ERADAH DASHBOARD — Google Apps Script Backend
-// انسخ هذا الكود في Apps Script → Deploy as Web App
-// ============================================================
-
-function doGet(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet();
-  const output = buildDashboardData(sheet);
-  return ContentService
-    .createTextOutput(JSON.stringify(output))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*');
-}
-
-function buildDashboardData(ss) {
-  return {
-    kpi:          getKPI(ss),
-    employees:    getEmployees(ss),
-    beneficiaries:getBeneficiaries(ss),
-    sessions:     getSessions(ss),
-    absence:      getAbsence(ss),
-    admin:        getAdmin(ss),
-    financial:    getFinancial(ss),
-    diagnoses:    getDiagnoses(ss),
-    generated_at: new Date().toISOString()
-  };
-}
-
-// ---- KPI Summary ----
-function getKPI(ss) {
-  const emp  = ss.getSheetByName('الموظفين').getLastRow() - 1;
-  const bene = ss.getSheetByName('المستفيدين').getLastRow() - 1;
-  const sess = ss.getSheetByName('الجلسات').getLastRow() - 1;
-  const abs  = ss.getSheetByName('جدول الغياب').getLastRow() - 1;
-  const adm  = ss.getSheetByName('الحالة الإدارية').getLastRow() - 1;
-  
-  // Financial total
-  const finData = ss.getSheetByName('التحصيل')
-    .getDataRange().getValues().slice(1);
-  const total = finData.reduce((s,r) => s + (Number(r[4])||0), 0);
-  
-  // Sessions status
-  const sessData = ss.getSheetByName('الجلسات')
-    .getDataRange().getValues().slice(1);
-  const completed = sessData.filter(r => r[8]==='تمت').length;
-  const cancelled = sessData.filter(r => r[8]==='ملغاة').length;
-  
-  // Fees expected
-  const beneData = ss.getSheetByName('المستفيدين')
-    .getDataRange().getValues().slice(1);
-  const fees = beneData.reduce((s,r) => s + (Number(r[11])||0), 0);
-  
-  return { emp, bene, sess, abs, adm, total, completed, cancelled, fees };
-}
-
-// ---- Employees ----
-function getEmployees(ss) {
-  const data = ss.getSheetByName('الموظفين')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  
-  return {
-    by_center:    groupCount(data, 7),
-    by_specialty: groupCount(data, 4),
-    by_type:      groupCount(data, 5),
-    by_period:    groupCount(data, 8)
-  };
-}
-
-// ---- Beneficiaries ----
-function getBeneficiaries(ss) {
-  const data = ss.getSheetByName('المستفيدين')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  
-  const today = new Date();
-  const ageGroups = {'أقل من 6':0,'6-12':0,'12-18':0,'18+':0};
-  data.forEach(r => {
-    if (r[4] instanceof Date) {
-      const age = Math.floor((today - r[4]) / (365.25*24*3600*1000));
-      if (age < 6) ageGroups['أقل من 6']++;
-      else if (age < 12) ageGroups['6-12']++;
-      else if (age < 18) ageGroups['12-18']++;
-      else ageGroups['18+']++;
-    }
-  });
-  
-  return {
-    by_gender:  groupCount(data, 3),
-    by_center:  groupCount(data, 5),
-    by_program: groupCount(data, 10),
-    by_funding: groupCount(data, 12),
-    by_age:     ageGroups
-  };
-}
-
-// ---- Sessions ----
-function getSessions(ss) {
-  const data = ss.getSheetByName('الجلسات')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  
-  const monthly = {};
-  data.forEach(r => {
-    if (r[1] instanceof Date) {
-      const key = r[1].getFullYear()+'-'
-        +String(r[1].getMonth()+1).padStart(2,'0');
-      monthly[key] = (monthly[key]||0)+1;
-    }
-  });
-  
-  return {
-    by_status:  groupCount(data, 8),
-    by_service: groupCount(data, 6),
-    monthly:    monthly
-  };
-}
-
-// ---- Absence ----
-function getAbsence(ss) {
-  const data = ss.getSheetByName('جدول الغياب')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  return {
-    by_who:   groupCount(data, 1),
-    by_reason:groupCount(data, 5)
-  };
-}
-
-// ---- Admin ----
-function getAdmin(ss) {
-  const data = ss.getSheetByName('الحالة الإدارية')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  return { by_status: groupCount(data, 5) };
-}
-
-// ---- Financial ----
-function getFinancial(ss) {
-  const data = ss.getSheetByName('التحصيل')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  
-  const monthly = {};
-  data.forEach(r => {
-    if (r[3] instanceof Date && r[4]) {
-      const key = r[3].getFullYear()+'-'
-        +String(r[3].getMonth()+1).padStart(2,'0');
-      monthly[key] = (monthly[key]||0) + Number(r[4]);
-    }
-  });
-  
-  return {
-    by_type: groupCount(data, 5),
-    monthly: monthly,
-    total:   data.reduce((s,r)=>s+(Number(r[4])||0),0)
-  };
-}
-
-// ---- Diagnoses ----
-function getDiagnoses(ss) {
-  const data = ss.getSheetByName('تشخيص الحالات')
-    .getDataRange().getValues().slice(1)
-    .filter(r => r[1]);
-  return {
-    top10:       groupCount(data, 3),
-    by_severity: groupCount(data, 4)
-  };
-}
-
-// ---- Helper ----
-function groupCount(arr, colIdx) {
-  const counter = {};
-  arr.forEach(r => {
-    const val = String(r[colIdx]||'').trim();
-    if (val) counter[val] = (counter[val]||0)+1;
-  });
-  return counter;
-}</div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-header"><div><div class="chart-title">📋 كود JavaScript للربط في Dashboard (ضعه في بداية &lt;script&gt;)</div></div></div>
-        <div class="code-block">// ============================================================
-// ضع رابط Web App الخاص بك هنا بعد نشر Apps Script
-// ============================================================
-const SHEET_API_URL = 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec';
-
-// دالة تحديث البيانات من Google Sheets مباشرة
-async function loadFromGoogleSheets() {
-  try {
-    showLoadingState(true);
-    const res  = await fetch(SHEET_API_URL);
-    const data = await res.json();
-    
-    // تحديث KPI Cards
-    updateKPICards(data.kpi);
-    
-    // تحديث الرسوم
-    updateAllCharts(data);
-    
-    // تحديث وقت آخر تحديث
-    document.getElementById('last-update-time').textContent =
-      new Date(data.generated_at).toLocaleString('ar-SA');
-    
-    showLoadingState(false);
-    console.log('✅ تم تحديث البيانات من Google Sheets');
-  } catch (err) {
-    console.error('❌ خطأ في الاتصال بـ Google Sheets:', err);
-    showLoadingState(false);
-  }
-}
-
-// تحديث تلقائي كل 5 دقائق
-setInterval(loadFromGoogleSheets, 5 * 60 * 1000);
-
-// أول تحميل
-// loadFromGoogleSheets(); // ← أزل التعليق لتفعيل الربط الحي</div>
-      </div>
-
-      <div class="insights-row" style="margin-top:16px">
-        <div class="insight-card">
-          <div class="insight-icon green"><i class="fas fa-check-circle"></i></div>
-          <div class="insight-text">
-            <h4>بيانات حية تلقائية</h4>
-            <p>اللوحة تتحدث كل 5 دقائق تلقائياً من Google Sheets</p>
+        <div class="chart-header"><div><div class="chart-title">📋 خطوات الربط (مرة واحدة فقط)</div></div></div>
+        <div style="display:flex;flex-direction:column;gap:16px;padding:4px 0">
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">ارفع الملف على Google Drive</div><div style="font-size:12px;color:var(--gray-400)">drive.google.com ← New ← File upload ← اختر مسودة_الجداول.xlsx</div></div>
           </div>
-        </div>
-        <div class="insight-card">
-          <div class="insight-icon blue"><i class="fas fa-shield-alt"></i></div>
-          <div class="insight-text">
-            <h4>آمن ومصادق</h4>
-            <p>Apps Script يدعم OAuth2 وصلاحيات Google الكاملة</p>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">افتح كـ Google Sheets</div><div style="font-size:12px;color:var(--gray-400)">انقر يمين على الملف ← Open with ← Google Sheets</div></div>
           </div>
-        </div>
-        <div class="insight-card">
-          <div class="insight-icon purple"><i class="fas fa-expand-arrows-alt"></i></div>
-          <div class="insight-text">
-            <h4>قابل للتوسع</h4>
-            <p>يمكن إضافة فلاتر وتواريخ وصلاحيات مراكز محددة</p>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">افتح محرر Apps Script</div><div style="font-size:12px;color:var(--gray-400)">Extensions ← Apps Script ← احذف الكود الافتراضي</div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">الصق كود eradah_apps_script.gs</div><div style="font-size:12px;color:var(--gray-400)">انسخ محتوى الملف المرفق كاملاً والصقه ← Ctrl+S للحفظ</div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">5</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">انشر كـ Web App</div><div style="font-size:12px;color:var(--gray-400)">Deploy ← New deployment ← Web App ← Execute as: Me ← Who has access: Anyone ← Deploy ← انسخ الرابط</div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">6</div>
+            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">الصق الرابط في الحقل أعلاه واضغط "اتصال وتحميل"</div><div style="font-size:12px;color:var(--gray-400)">اللوحة ستتحدث تلقائياً من Google Sheets مباشرة 🎉</div></div>
           </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- end page-integration -->
 
   </div><!-- end page-wrapper -->
 </div><!-- end main-content -->
 
 <script>
-// ============================================================
-// ERADAH DASHBOARD — JAVASCRIPT ENGINE
-// ============================================================
-
-// ---- Real Data from Excel ----
 const DATA = {
   kpi: {
     total_employees: 100, total_beneficiaries: 200, total_sessions: 500,
@@ -2007,10 +1829,13 @@ const DATA = {
   },
   employees: {
     by_center:    { 'مكة': 30, 'جلمودة': 24, 'نجد': 23, 'القدس': 23 },
-    by_specialty: { 'علاج وظيفي': 18, 'نطق وتواصل': 13, 'إرشاد أسري': 13,
+    by_specialty: { 'علاج وظيفي': 17, 'نطق وتواصل': 13, 'إرشاد أسري': 13,
                     'علاج طبيعي': 12, 'صحة عامة': 10, 'تأهيل نفسي': 9,
                     'تأهيل نفسي حركي': 9, 'تربية خاصة': 8, 'خدمة اجتماعية': 8 },
-    by_type: { 'أخصائي': 79, 'إداري': 21 },
+    by_type: { 'فني': 79, 'إداري': 21 },
+    by_service: { 'العلاج الوظيفي': 18, 'النطق والتواصل': 13, 'الإرشاد الأسري': 13,
+                  'العلاج الطبيعي': 12, 'الصحة العامة': 10, 'التأهيل النفسي': 9,
+                  'التأهيل النفسي الحركي': 9, 'التربية الخاصة': 8, 'الخدمة الاجتماعية': 8 },
     top_by_sessions: [['موظف56',12],['موظف15',12],['موظف2',10],['موظف85',10],['موظف93',9]]
   },
   beneficiaries: {
@@ -2021,7 +1846,7 @@ const DATA = {
     by_program: { 'فصول': 76, 'جلسات فردية': 62, 'كلاهما': 62 },
     by_funding: { 'أفراد': 44, 'شركة حديد': 43, 'تأمين / شركات': 42, 'شركة سابك': 40, 'الشؤون الاجتماعية': 31 },
     by_age:     { 'أقل من 6': 34, '6-12': 104, '12-18': 62 },
-    by_iq:      { 'أقل من 25': 0, '25-49 (شديد)': 24, '50-69 (متوسط)': 55, '70-84 (خفيف)': 39, '85+ (حدي)': 82 }
+    by_iq:      { '25-49 (شديد)': 24, '50-69 (متوسط)': 55, '70-84 (خفيف)': 39, '85+ (حدي)': 82 }
   },
   diagnoses: {
     top10: { 'اضطراب طيف التوحد': 38, 'اضطراب تواصل اجتماعي': 36, 'فرط الحركة وتشتت الانتباه': 36,
@@ -2030,14 +1855,16 @@ const DATA = {
     by_severity: { 'شديد': 98, 'خفيف': 185, 'متوسط': 209 }
   },
   sessions: {
-    by_status:  { 'تمت': 272, 'ملغاة': 88, 'مؤجلة': 61, 'لم تتم': 79 },
-    by_service: { 'العلاج الوظيفي': 90, 'الإرشاد الأسري': 71, 'النطق والتواصل': 69,
-                  'العلاج الطبيعي': 62, 'التأهيل النفسي': 51, 'التأهيل النفسي الحركي': 44,
-                  'الصحة العامة': 43, 'التربية الخاصة': 38, 'الخدمة الاجتماعية': 32 },
+    by_status:   { 'تمت': 272, 'ملغاة': 88, 'مؤجلة': 61, 'لم تتم': 79 },
+    by_type:     { 'جلسة': 354, 'خدمة': 146 },
+    by_service:  { 'العلاج الوظيفي': 90, 'الإرشاد الأسري': 71, 'النطق والتواصل': 69,
+                   'العلاج الطبيعي': 62, 'التأهيل النفسي': 51, 'التأهيل النفسي الحركي': 44,
+                   'التربية الخاصة': 38, 'الخدمة الاجتماعية': 32, 'التغذية': 27, 'التمريض': 16 },
     monthly: { '2024-06':19,'2024-07':17,'2024-08':29,'2024-09':15,'2024-10':17,
                '2024-11':23,'2024-12':18,'2025-01':26,'2025-02':19,'2025-03':27,
                '2025-04':23,'2025-05':23,'2025-06':19,'2025-07':28,'2025-08':25,
-               '2025-09':23,'2025-10':23,'2025-11':19,'2025-12':21,'2026-01':24 }
+               '2025-09':23,'2025-10':23,'2025-11':19,'2025-12':21,'2026-01':24,
+               '2026-02':15,'2026-03':23,'2026-04':22 }
   },
   absence: {
     by_who:   { 'مستفيد': 60, 'موظف': 20 },
@@ -2432,6 +2259,19 @@ function initSessionCharts() {
     }
   });
 
+  // Session Type (جلسة vs خدمة)
+  makeChart('chart-sess-type', {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(DATA.sessions.by_type),
+      datasets: [{ data: Object.values(DATA.sessions.by_type),
+        backgroundColor: [COLORS.indigo, COLORS.purple], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins: { tooltip: tooltipOpts,
+        legend:{ display:true, position:'bottom', labels:{ color:'#94a3b8', font:{size:11}, boxWidth:10 } } } }
+  });
+
   // Services
   const svLbls = Object.keys(DATA.sessions.by_service);
   const svVals = Object.values(DATA.sessions.by_service);
@@ -2584,6 +2424,12 @@ function showPage(pageId) {
   const meta = pageMap[pageId] || {};
   document.getElementById('topbar-page-title').textContent = meta.title || '';
   document.getElementById('topbar-page-sub').innerHTML = meta.sub || '';
+
+  // ✅ Render dynamic filters for this page
+  renderPageFilters(pageId);
+
+  // Reset filter state for extra dropdowns
+  FILTER_STATE.currentPage = pageId;
 }
 
 function toggleSidebar() {
@@ -2630,6 +2476,140 @@ const styleEl = document.createElement('style');
 styleEl.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
 document.head.appendChild(styleEl);
 
+
+
+// ============================================================
+// DYNAMIC PAGE FILTERS — تتغير حسب القسم النشط
+// ============================================================
+
+// تعريف فلاتر كل صفحة
+const PAGE_FILTERS = {
+
+  overview: {
+    label: 'نظرة عامة',
+    filters: [
+      { id:'f-center', icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-period', icon:'🕐', label:'جميع الفترات', options:['صباحي','مسائي'] }
+    ]
+  },
+
+  beneficiaries: {
+    label: 'المستفيدون',
+    filters: [
+      { id:'f-center',  icon:'🏢', label:'جميع المراكز',    options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-gender',  icon:'👤', label:'الجنس',           options:['ذكر','أنثى'] },
+      { id:'f-program', icon:'📋', label:'نوع البرنامج',    options:['فصول','جلسات فردية','كلاهما'] },
+      { id:'f-funding', icon:'💰', label:'مصدر التمويل',    options:['أفراد','شركة حديد','تأمين / شركات','شركة سابك','الشؤون الاجتماعية'] },
+      { id:'f-agegroup',icon:'🎂', label:'الفئة العمرية',   options:['أقل من 6','6-12','12-18','18+'] },
+      { id:'f-diag',    icon:'🧠', label:'التشخيص',         options:['اضطراب طيف التوحد','اضطراب تواصل اجتماعي','فرط الحركة وتشتت الانتباه','إعاقة ذهنية','اضطرابات سلوكية','مشكلات لغوية'] }
+    ]
+  },
+
+  employees: {
+    label: 'الموظفون',
+    filters: [
+      { id:'f-center',    icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-period',    icon:'🕐', label:'الفترة',         options:['صباحي','مسائي'] },
+      { id:'f-emp-type',  icon:'👔', label:'نوع الموظف',    options:['فني','إداري'] },
+      { id:'f-specialty', icon:'🩺', label:'التخصص',        options:['علاج وظيفي','نطق وتواصل','إرشاد أسري','علاج طبيعي','صحة عامة','تأهيل نفسي','تأهيل نفسي حركي','تربية خاصة','خدمة اجتماعية'] }
+    ]
+  },
+
+  sessions: {
+    label: 'الجلسات',
+    filters: [
+      { id:'f-center',  icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-period',  icon:'🕐', label:'الفترة',         options:['صباحي','مسائي'] },
+      { id:'f-sess-type',icon:'🔖', label:'نوع الخدمة',     options:['جلسة','خدمة'] },
+      { id:'f-service', icon:'🩺', label:'الخدمة',         options:['العلاج الوظيفي','الإرشاد الأسري','النطق والتواصل','العلاج الطبيعي','التأهيل النفسي','التأهيل النفسي الحركي','التربية الخاصة','الخدمة الاجتماعية','التغذية','التمريض'] },
+      { id:'f-status',  icon:'📌', label:'حالة الجلسة',   options:['تمت','ملغاة','مؤجلة','لم تتم'] }
+    ]
+  },
+
+  financial: {
+    label: 'التحصيل المالي',
+    filters: [
+      { id:'f-center',   icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-fin-type', icon:'💳', label:'نوع التحصيل',   options:['سند قبض','اعفاء'] },
+      { id:'f-funding',  icon:'💰', label:'مصدر التمويل',  options:['أفراد','شركة حديد','تأمين / شركات','شركة سابك','الشؤون الاجتماعية'] }
+    ]
+  },
+
+  absence: {
+    label: 'الغياب',
+    filters: [
+      { id:'f-center',     icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-abs-who',    icon:'👥', label:'نوع الغياب',   options:['مستفيد','موظف'] },
+      { id:'f-abs-reason', icon:'📝', label:'السبب',         options:['مرضي','غياب بعذر','غياب بدون عذر','إجازة'] },
+      { id:'f-period',     icon:'🕐', label:'الفترة',        options:['صباحي','مسائي'] }
+    ]
+  },
+
+  admin: {
+    label: 'الحالة الإدارية',
+    filters: [
+      { id:'f-center',      icon:'🏢', label:'جميع المراكز',    options:['مكة','نجد','القدس','جلمودة'] },
+      { id:'f-admin-status',icon:'📁', label:'الحالة الإدارية', options:['إعادة قيد','متوقف','تخرج','تم الدمج','طي قيد','إنهاء خدمة'] }
+    ]
+  },
+
+  insights: {
+    label: 'الرؤى الذكية',
+    filters: [
+      { id:'f-center', icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] }
+    ]
+  },
+
+  integration: { label: 'ربط Google Sheets', filters: [] }
+};
+
+// ---- Render filters for current page ----
+function renderPageFilters(pageId) {
+  const row = document.getElementById('extraFiltersRow');
+  if (!row) return;
+
+  const config = PAGE_FILTERS[pageId];
+  if (!config || config.filters.length === 0) {
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'flex';
+
+  // Save current filter values before re-render
+  const savedVals = {};
+  row.querySelectorAll('select[id]').forEach(s => { savedVals[s.id] = s.value; });
+
+  // Build HTML
+  let html = `<span class="extra-filter-label">
+    <i class="fas fa-sliders-h" style="margin-left:6px;color:var(--indigo-lite)"></i>
+    فلاتر ${config.label}:
+  </span>`;
+
+  config.filters.forEach(f => {
+    const saved = savedVals[f.id] || FILTER_STATE[f.id.replace('f-','')] || '';
+    html += `<select class="filter-select" id="${f.id}" onchange="markFilterDirty()" title="${f.label}">
+      <option value="">${f.icon} ${f.label}</option>
+      ${f.options.map(o => `<option value="${o}"${saved===o?' selected':''}>${o}</option>`).join('')}
+    </select>`;
+  });
+
+  html += `<div style="flex:1"></div>
+    <button class="filter-apply-btn" onclick="applyFilter()">
+      <i class="fas fa-filter"></i> تطبيق
+    </button>
+    <button class="filter-reset-btn" onclick="resetFilters()">
+      <i class="fas fa-undo"></i> إعادة تعيين
+    </button>`;
+
+  row.innerHTML = html;
+
+  // Animate in
+  row.style.opacity = '0';
+  requestAnimationFrame(() => {
+    row.style.transition = 'opacity 0.25s ease';
+    row.style.opacity = '1';
+  });
+}
 
 // ============================================================
 // FILTER ENGINE
@@ -2684,12 +2664,11 @@ function applyFilter() {
   } else {
     FILTER_STATE.dateFrom = null; FILTER_STATE.dateTo = null; FILTER_STATE.quarter = null;
   }
-  FILTER_STATE.center  = document.getElementById('f-center').value;
-  FILTER_STATE.period  = document.getElementById('f-period').value;
-  FILTER_STATE.service = document.getElementById('f-service').value;
-  FILTER_STATE.gender  = document.getElementById('f-gender').value;
-  FILTER_STATE.program = document.getElementById('f-program').value;
-  FILTER_STATE.status  = document.getElementById('f-status').value;
+  // Read ALL dynamic filter selects from current page
+  document.querySelectorAll('#extraFiltersRow select[id]').forEach(sel => {
+    const key = sel.id.replace('f-','');
+    FILTER_STATE[key] = sel.value;
+  });
 
   renderFilterChips();
   updateFilterBadge();
@@ -2773,6 +2752,8 @@ function refreshChartsWithData(fd) {
   updateChartData('chart-fin-monthly',       fMths, fVals);
   updateChartData('chart-absence-monthly', Object.keys(fd.absence.monthly),  Object.values(fd.absence.monthly));
   updateChartData('chart-bene-gender',     Object.keys(fd.beneficiaries.by_gender),  Object.values(fd.beneficiaries.by_gender));
+  // Sessions type (if available in filtered data)
+  if (fd.sessions.by_type) updateChartData('chart-sess-type', Object.keys(fd.sessions.by_type), Object.values(fd.sessions.by_type));
   updateChartData('chart-programs',        Object.keys(fd.beneficiaries.by_program), Object.values(fd.beneficiaries.by_program));
   updateChartData('chart-emp-centers',     Object.keys(fd.employees.by_center),      Object.values(fd.employees.by_center));
   const pct = DATA.kpi.total_fees_expected > 0
@@ -2813,12 +2794,18 @@ function renderFilterChips() {
     chips.push({ label:`من ${FILTER_STATE.dateFrom||'...'} إلى ${FILTER_STATE.dateTo||'...'}`, key:'date' });
   if (FILTER_STATE.mode==='quarter' && FILTER_STATE.quarter)
     chips.push({ label:`${FILTER_STATE.quarter} — ${FILTER_STATE.year}`, key:'quarter' });
-  if (FILTER_STATE.center)  chips.push({ label:`مركز: ${FILTER_STATE.center}`,    key:'center'  });
-  if (FILTER_STATE.period)  chips.push({ label:`فترة: ${FILTER_STATE.period}`,    key:'period'  });
-  if (FILTER_STATE.service) chips.push({ label:`خدمة: ${FILTER_STATE.service}`,   key:'service' });
-  if (FILTER_STATE.gender)  chips.push({ label:`الجنس: ${FILTER_STATE.gender}`,   key:'gender'  });
-  if (FILTER_STATE.program) chips.push({ label:`برنامج: ${FILTER_STATE.program}`, key:'program' });
-  if (FILTER_STATE.status)  chips.push({ label:`حالة: ${FILTER_STATE.status}`,    key:'status'  });
+  // Dynamic chips from all active filter selects
+  const filterLabels = {
+    center:'مركز', period:'فترة', service:'خدمة', gender:'الجنس',
+    program:'برنامج', status:'حالة', funding:'تمويل', agegroup:'العمر',
+    diag:'تشخيص', 'emp-type':'نوع الموظف', specialty:'تخصص',
+    'fin-type':'نوع التحصيل', 'abs-who':'نوع الغياب',
+    'abs-reason':'سبب الغياب', 'admin-status':'الحالة الإدارية'
+  };
+  Object.entries(filterLabels).forEach(([key, lbl]) => {
+    const val = FILTER_STATE[key];
+    if (val) chips.push({ label:`${lbl}: ${val}`, key });
+  });
   chips.forEach(chip => {
     const el = document.createElement('span');
     el.className = 'filter-chip';
@@ -2832,7 +2819,11 @@ function removeChip(key) {
     FILTER_STATE.mode='all'; FILTER_STATE.dateFrom=null; FILTER_STATE.dateTo=null; FILTER_STATE.quarter=null;
     document.querySelectorAll('.filter-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
     document.querySelectorAll('.filter-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
-  } else { FILTER_STATE[key]=''; const el=document.getElementById('f-'+key); if(el)el.value=''; }
+  } else {
+    FILTER_STATE[key] = '';
+    const el = document.getElementById('f-' + key);
+    if (el) el.value = '';
+  }
   applyFilter();
 }
 
@@ -2860,7 +2851,12 @@ function resetFilters() {
   document.querySelectorAll('.filter-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
   document.querySelectorAll('.filter-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   document.querySelectorAll('.quarter-btn').forEach(b=>b.classList.remove('active'));
-  ['f-center','f-period','f-service','f-gender','f-program','f-status'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  // Clear all dynamic filter selects
+  document.querySelectorAll('#extraFiltersRow select[id]').forEach(sel => {
+    sel.value = '';
+    const key = sel.id.replace('f-','');
+    FILTER_STATE[key] = '';
+  });
   document.getElementById('activeFilters').innerHTML='';
   document.getElementById('filterSummaryBadge').classList.remove('visible');
   initAllCharts();
@@ -2879,6 +2875,154 @@ document.getElementById('last-update-time').textContent =
 window.addEventListener('DOMContentLoaded', () => {
   initAllCharts();
   animateCounters();
+  renderPageFilters('overview'); // init filters for first page
+});
+
+// ============================================================
+// GOOGLE SHEETS LIVE CONNECTOR
+// ============================================================
+var _autoRefreshTimer = null;
+var _loadCount = 0;
+var SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzU-j5CX_2sLARq1Xw-MJ1gnKwuf6YUZVDoXfUUwlNWTEyXoenU4W71m9QBkZ9YUlY/exec';
+
+function initSheetConnector() {
+  // Use hardcoded URL as default, override with localStorage if user changed it
+  var saved = localStorage.getItem('eradah_sheet_url') || SHEET_API_URL;
+  SHEET_API_URL = saved;
+  var inp = document.getElementById('sheet-api-url');
+  if (inp) inp.value = saved;
+
+  if (saved) {
+    setConnectionStatus('loading', 'جارٍ تحميل البيانات من Google Sheets...');
+    // Auto-load on page open
+    loadFromGoogleSheets();
+  }
+
+  var autoOn = localStorage.getItem('eradah_auto_refresh') !== 'false'; // default ON
+  var toggle = document.getElementById('auto-refresh-toggle');
+  if (toggle) toggle.checked = autoOn;
+  if (autoOn) startAutoRefresh();
+}
+
+async function connectAndLoad() {
+  var inp = document.getElementById('sheet-api-url');
+  var url = inp ? inp.value.trim() : SHEET_API_URL;
+  if (!url) { alert('الرجاء إدخال رابط Web App أولاً'); return; }
+  SHEET_API_URL = url;
+  localStorage.setItem('eradah_sheet_url', url);
+  await loadFromGoogleSheets();
+}
+
+async function loadFromGoogleSheets() {
+  if (!SHEET_API_URL) return;
+  setConnectionStatus('loading', 'جارٍ تحميل البيانات...');
+  var t0 = Date.now();
+  try {
+    var res  = await fetch(SHEET_API_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    if (data.error) throw new Error(data.message);
+    applyLiveData(data);
+    var ms = Date.now() - t0;
+    _loadCount++;
+    setConnectionStatus('connected', 'متصل ✅ — بيانات مباشرة من Google Sheets');
+    var ts = new Date(data.generated_at).toLocaleString('ar-SA');
+    ['last-sheet-update','last-update-time'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.textContent=ts;
+    });
+    var rt=document.getElementById('last-response-time'); if(rt) rt.textContent=ms+' ms';
+    var lc=document.getElementById('load-count'); if(lc) lc.textContent=_loadCount;
+  } catch(err) {
+    setConnectionStatus('error', 'خطأ: ' + err.message);
+  }
+}
+
+function applyLiveData(liveData) {
+  if (liveData.kpi)           Object.assign(DATA.kpi,           liveData.kpi);
+  if (liveData.employees)     Object.assign(DATA.employees,     liveData.employees);
+  if (liveData.beneficiaries) Object.assign(DATA.beneficiaries, liveData.beneficiaries);
+  if (liveData.sessions)      Object.assign(DATA.sessions,      liveData.sessions);
+  if (liveData.absence)       Object.assign(DATA.absence,       liveData.absence);
+  if (liveData.admin)         Object.assign(DATA.admin,         liveData.admin);
+  if (liveData.financial)     Object.assign(DATA.financial,     liveData.financial);
+  if (liveData.diagnoses)     Object.assign(DATA.diagnoses,     liveData.diagnoses);
+  initAllCharts();
+  animateCounters();
+}
+
+async function testConnection() {
+  var inp = document.getElementById('sheet-api-url');
+  var url = inp ? inp.value.trim() : SHEET_API_URL;
+  if (!url) { alert('أدخل الرابط أولاً'); return; }
+  setConnectionStatus('loading', 'جارٍ الاختبار...');
+  try {
+    var res  = await fetch(url + '?t=' + Date.now());
+    var data = await res.json();
+    if (data.error) throw new Error(data.message);
+    setConnectionStatus('connected',
+      '✅ ناجح! موظفين: '+(data.kpi.total_employees||'?')+
+      ' | مستفيدين: '+(data.kpi.total_beneficiaries||'?')+
+      ' | جلسات: '+(data.kpi.total_sessions||'?'));
+  } catch(err) {
+    setConnectionStatus('error', '❌ فشل: ' + err.message);
+  }
+}
+
+function disconnectSheet() {
+  SHEET_API_URL = '';
+  localStorage.removeItem('eradah_sheet_url');
+  localStorage.removeItem('eradah_auto_refresh');
+  stopAutoRefresh();
+  var inp = document.getElementById('sheet-api-url'); if(inp) inp.value='';
+  var tog = document.getElementById('auto-refresh-toggle'); if(tog) tog.checked=false;
+  setConnectionStatus('disconnected','تم قطع الاتصال');
+}
+
+function toggleAutoRefresh() {
+  var on = document.getElementById('auto-refresh-toggle').checked;
+  localStorage.setItem('eradah_auto_refresh', on);
+  on ? startAutoRefresh() : stopAutoRefresh();
+}
+function changeRefreshInterval() {
+  if (document.getElementById('auto-refresh-toggle').checked) { stopAutoRefresh(); startAutoRefresh(); }
+}
+function startAutoRefresh() {
+  stopAutoRefresh();
+  var secs = parseInt(document.getElementById('refresh-interval').value)||300;
+  _autoRefreshTimer = setInterval(loadFromGoogleSheets, secs*1000);
+}
+function stopAutoRefresh() {
+  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer=null; }
+}
+
+function setConnectionStatus(state, msg) {
+  var dot  = document.getElementById('conn-dot');
+  var txt  = document.getElementById('conn-msg');
+  var stxt = document.getElementById('conn-status-text');
+  var box  = document.getElementById('connection-status-box');
+  var colors = { connected:'var(--emerald)',loading:'var(--amber)',error:'var(--rose)',disconnected:'var(--gray-400)',saved:'var(--sky)' };
+  var labels = { connected:'متصل',loading:'جارٍ التحميل',error:'خطأ',disconnected:'غير متصل',saved:'محفوظ' };
+  var col = colors[state]||'var(--gray-400)';
+  if(dot)  dot.style.color=col;
+  if(txt)  txt.textContent=msg;
+  if(stxt) { stxt.textContent=labels[state]||state; stxt.style.color=col; }
+}
+
+
+// ============================================================
+// TIMESTAMP
+// ============================================================
+document.getElementById('last-update-time').textContent =
+  new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' });
+
+// ============================================================
+// BOOT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  initAllCharts();
+  animateCounters();
+  renderPageFilters('overview');
+  initSheetConnector();
 });
 </script>
 </body>
