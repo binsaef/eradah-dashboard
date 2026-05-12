@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 /* ============================================================
    ERADAH EXECUTIVE DASHBOARD — CSS
@@ -487,6 +488,60 @@ body {
 .alert-item.info    .alert-icon { color: var(--indigo-lite); }
 .alert-item.success .alert-icon { color: var(--emerald-lite); }
 
+/* ============================================================ CENTERS BENCHMARK TABLE */
+.bench-table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
+.bench-table thead th {
+  position:sticky; top:0; background:rgba(15,23,42,0.85); backdrop-filter:blur(8px);
+  color:var(--gray-300); font-weight:600; padding:10px 8px; text-align:right;
+  border-bottom:1px solid var(--glass-border); white-space:nowrap;
+}
+.bench-table tbody td {
+  padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.04);
+  vertical-align:middle;
+}
+.bench-table tbody tr:hover td { background:rgba(255,255,255,0.025); }
+.bench-table tbody tr:last-child td { border-bottom:none; }
+.bench-rank { display:inline-block; width:22px; height:22px; line-height:22px; text-align:center;
+  border-radius:50%; font-size:10px; font-weight:700; }
+.bench-rank.top   { background:rgba(16,185,129,0.18); color:var(--emerald-lite); }
+.bench-rank.mid   { background:rgba(245,158,11,0.18); color:var(--amber); }
+.bench-rank.low   { background:rgba(244,63,94,0.18); color:var(--rose); }
+.pct-bar {
+  display:inline-block; width:54px; height:6px; background:rgba(255,255,255,0.08);
+  border-radius:3px; overflow:hidden; margin-left:6px; vertical-align:middle;
+}
+.pct-bar > span { display:block; height:100%; border-radius:3px; }
+.pct-bar > span.good { background:linear-gradient(90deg,var(--emerald),#059669); }
+.pct-bar > span.mid  { background:linear-gradient(90deg,var(--amber),#d97706); }
+.pct-bar > span.low  { background:linear-gradient(90deg,var(--rose),#be123c); }
+.score-badge {
+  display:inline-block; padding:3px 9px; border-radius:10px; font-weight:700;
+  font-size:11.5px; min-width:34px; text-align:center;
+}
+.score-badge.good { background:rgba(16,185,129,0.18); color:var(--emerald-lite); }
+.score-badge.mid  { background:rgba(245,158,11,0.18); color:var(--amber); }
+.score-badge.low  { background:rgba(244,63,94,0.18); color:var(--rose); }
+
+/* ============================================================ HEADLINE RATIOS STRIP */
+.ratios-row {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  gap:10px; margin-bottom:18px;
+}
+.ratio-mini {
+  background:var(--glass-bg); border:1px solid var(--glass-border);
+  border-radius:var(--radius-sm); padding:12px 14px; text-align:center;
+  position:relative; overflow:hidden;
+}
+.ratio-mini::before {
+  content:''; position:absolute; top:0; right:0; left:0; height:2px;
+  background:linear-gradient(90deg, var(--indigo), var(--sky));
+}
+.ratio-mini-val { font-size:20px; font-weight:800; color:var(--white); line-height:1.1; }
+.ratio-mini-lbl { font-size:10.5px; color:var(--gray-400); margin-top:4px; }
+.ratio-mini-trend { font-size:10px; margin-top:3px; }
+.ratio-mini-trend.up   { color:var(--emerald-lite); }
+.ratio-mini-trend.down { color:var(--rose); }
+
 .alert-text { flex: 1; font-size: 13px; line-height: 1.5; }
 .alert-time { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
 
@@ -749,6 +804,59 @@ body {
   display: none;
 }
 .filter-summary-badge.visible { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ===== CALENDAR STYLES ===== */
+.date-picker-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(61,90,241,0.2), rgba(61,90,241,0.1));
+  border: 1px solid rgba(61,90,241,0.4);
+  color: var(--white); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.2s ease;
+  min-width: 160px;
+}
+.date-picker-btn:hover {
+  background: linear-gradient(135deg, rgba(61,90,241,0.4), rgba(61,90,241,0.2));
+  border-color: var(--indigo); transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(61,90,241,0.3);
+}
+.date-picker-btn.active {
+  background: linear-gradient(135deg, var(--indigo), #2d4ae0);
+  border-color: var(--indigo);
+  box-shadow: 0 4px 20px rgba(61,90,241,0.5);
+}
+.date-picker-btn i { color: var(--indigo-lite); font-size: 14px; }
+.date-picker-btn.active i { color: white; }
+
+.cal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-size: 12px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s ease; border: none;
+  background: transparent; color: var(--white);
+}
+.cal-day:hover:not(:disabled) {
+  background: rgba(61,90,241,0.3); transform: scale(1.1);
+}
+.cal-day.has-data { color: var(--white); font-weight: 600; }
+.cal-day.has-data::after {
+  content: ''; position: absolute; bottom: 3px; left: 50%;
+  transform: translateX(-50%); width: 4px; height: 4px;
+  border-radius: 50%; background: var(--emerald-lite);
+}
+.cal-day { position: relative; }
+.cal-day.no-data { color: rgba(148,163,184,0.3); cursor: not-allowed; }
+.cal-day.selected-start, .cal-day.selected-end {
+  background: var(--indigo) !important; color: white !important;
+  font-weight: 700; box-shadow: 0 0 12px rgba(61,90,241,0.6);
+}
+.cal-day.in-range {
+  background: rgba(61,90,241,0.2); border-radius: 0;
+}
+.cal-day.selected-start { border-radius: 8px 0 0 8px; }
+.cal-day.selected-end   { border-radius: 0 8px 8px 0; }
+.cal-day.selected-start.selected-end { border-radius: 8px; }
+.cal-day.today { border: 1px solid rgba(16,185,129,0.5); }
+.cal-day:disabled { opacity: 0.2; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -776,17 +884,17 @@ body {
     <div class="nav-item" onclick="showPage('beneficiaries')">
       <i class="fas fa-users nav-icon"></i>
       <span class="nav-label">المستفيدون</span>
-      <span class="nav-badge">200</span>
+      <span class="nav-badge">—</span>
     </div>
     <div class="nav-item" onclick="showPage('employees')">
       <i class="fas fa-user-tie nav-icon"></i>
       <span class="nav-label">الموظفون</span>
-      <span class="nav-badge">100</span>
+      <span class="nav-badge">—</span>
     </div>
     <div class="nav-item" onclick="showPage('sessions')">
       <i class="fas fa-calendar-check nav-icon"></i>
       <span class="nav-label">الجلسات</span>
-      <span class="nav-badge">500</span>
+      <span class="nav-badge">—</span>
     </div>
     <div class="nav-item" onclick="showPage('financial')">
       <i class="fas fa-coins nav-icon"></i>
@@ -807,8 +915,8 @@ body {
       <span class="nav-label">رؤى ذكية</span>
     </div>
     <div class="nav-item" onclick="showPage('integration')">
-      <i class="fas fa-plug nav-icon"></i>
-      <span class="nav-label">ربط Google Sheets</span>
+      <i class="fas fa-file-excel nav-icon"></i>
+      <span class="nav-label">تحميل ملف Excel</span>
     </div>
   </div>
 
@@ -831,9 +939,8 @@ body {
     </div>
     <div class="topbar-actions">
       <div class="live-dot" title="البيانات محدّثة"></div>
-      <button class="topbar-btn" onclick="refreshData()"><i class="fas fa-sync-alt"></i> تحديث</button>
-      <button class="topbar-btn" id="btn-live-refresh" onclick="loadFromGoogleSheets()" title="تحديث من Google Sheets">
-        <i class="fas fa-cloud-download-alt" style="color:var(--emerald-lite)"></i> Sheets
+      <button class="topbar-btn" onclick="document.getElementById('local-excel-input') &amp;&amp; document.getElementById('local-excel-input').click()" title="تحميل/استبدال ملف Excel محلي">
+        <i class="fas fa-file-excel" style="color:var(--emerald-lite)"></i> ملف Excel
       </button>
       <button class="topbar-btn primary" onclick="window.print()"><i class="fas fa-file-pdf"></i> تصدير</button>
     </div>
@@ -869,21 +976,55 @@ body {
       </button>
     </div>
 
-    <!-- Panel: بين تاريخين -->
+    <!-- Panel: بين تاريخين — تقويم احترافي -->
     <div class="filter-panel" id="panel-range">
-      <div class="date-inputs">
-        <span class="date-label">من:</span>
-        <input type="date" class="date-input" id="dateFrom" value="2024-01-01">
-        <span class="date-sep">—</span>
-        <span class="date-label">إلى:</span>
-        <input type="date" class="date-input" id="dateTo" value="2025-06-30">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="date-picker-btn" id="btnFrom" onclick="openCalendar('from')">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="lblFrom">من: اختر تاريخ</span>
+        </button>
+        <div style="color:var(--gray-400);font-size:18px">→</div>
+        <button class="date-picker-btn" id="btnTo" onclick="openCalendar('to')">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="lblTo">إلى: اختر تاريخ</span>
+        </button>
+        <div id="date-range-display" style="display:none;background:rgba(61,90,241,0.15);border:1px solid rgba(61,90,241,0.4);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--indigo-lite)"></div>
       </div>
       <button class="filter-apply-btn" onclick="applyFilter()">
         <i class="fas fa-check"></i> تطبيق
       </button>
-      <button class="filter-reset-btn" onclick="resetFilters()">
-        <i class="fas fa-times"></i> إلغاء
+      <button class="filter-reset-btn" onclick="resetDateRange()">
+        <i class="fas fa-times"></i> مسح
       </button>
+    </div>
+
+    <!-- التقويم المنبثق -->
+    <div id="cal-popup" style="display:none;position:fixed;z-index:9999;background:linear-gradient(135deg,#162952,#0d1b38);border:1px solid rgba(61,90,241,0.4);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.6);padding:0;overflow:hidden;min-width:320px;">
+      <div style="background:linear-gradient(135deg,var(--indigo),#2d4ae0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <button onclick="calNav(-1)" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">‹</button>
+        <div id="cal-month-label" style="font-size:15px;font-weight:700;color:white;font-family:inherit"></div>
+        <button onclick="calNav(1)"  style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">›</button>
+      </div>
+      <div style="padding:12px 16px 16px">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px;">
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">أح</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">إث</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">ثل</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">أر</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">خم</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">جم</div>
+          <div style="text-align:center;font-size:11px;color:var(--gray-400);padding:4px;">سب</div>
+        </div>
+        <div id="cal-days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+          <span id="cal-range-text" style="font-size:11px;color:var(--gray-400)">اختر نطاق التاريخ</span>
+          <div style="display:flex;gap:8px;">
+            <button onclick="calQuickRange(30)"  style="background:rgba(61,90,241,0.2);border:1px solid rgba(61,90,241,0.3);border-radius:6px;color:var(--indigo-lite);padding:4px 10px;cursor:pointer;font-size:11px;font-family:inherit;">آخر شهر</button>
+            <button onclick="calQuickRange(90)"  style="background:rgba(61,90,241,0.2);border:1px solid rgba(61,90,241,0.3);border-radius:6px;color:var(--indigo-lite);padding:4px 10px;cursor:pointer;font-size:11px;font-family:inherit;">3 أشهر</button>
+            <button onclick="calQuickRange(365)" style="background:rgba(61,90,241,0.2);border:1px solid rgba(61,90,241,0.3);border-radius:6px;color:var(--indigo-lite);padding:4px 10px;cursor:pointer;font-size:11px;font-family:inherit;">سنة</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Panel: ربع سنوي -->
@@ -941,7 +1082,7 @@ body {
           </div>
           <div class="kpi-value" data-count="200">0</div>
           <div class="kpi-label">إجمالي المستفيدين</div>
-          <div class="kpi-sub">103 إناث · 97 ذكور</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card green">
           <div class="kpi-top">
@@ -950,7 +1091,7 @@ body {
           </div>
           <div class="kpi-value" data-count="100">0</div>
           <div class="kpi-label">إجمالي الموظفين</div>
-          <div class="kpi-sub">79 فني · 21 إداري</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card amber">
           <div class="kpi-top">
@@ -959,7 +1100,7 @@ body {
           </div>
           <div class="kpi-value" data-count="500">0</div>
           <div class="kpi-label">إجمالي الجلسات</div>
-          <div class="kpi-sub">272 مكتملة (54.4%)</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card rose">
           <div class="kpi-top">
@@ -968,7 +1109,7 @@ body {
           </div>
           <div class="kpi-value" data-count="80">0</div>
           <div class="kpi-label">حالات الغياب</div>
-          <div class="kpi-sub">60 مستفيد · 20 موظف</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card purple">
           <div class="kpi-top">
@@ -977,7 +1118,7 @@ body {
           </div>
           <div class="kpi-value" id="kpi-collection">0</div>
           <div class="kpi-label">إجمالي التحصيل (ر.س)</div>
-          <div class="kpi-sub">60.1% من المستهدف 565,000</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card sky">
           <div class="kpi-top">
@@ -986,8 +1127,37 @@ body {
           </div>
           <div class="kpi-value" data-count="4">0</div>
           <div class="kpi-label">عدد المراكز</div>
-          <div class="kpi-sub">مكة · نجد · القدس · جلمودة</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
+      </div>
+
+      <!-- EXECUTIVE RATIOS STRIP — ديناميكي -->
+      <div class="ratios-row" id="exec-ratios"></div>
+
+      <!-- CENTERS BENCHMARK — لوحة مقارنة المراكز -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">📊 لوحة مقارنة المراكز</div>
+            <div class="chart-subtitle">ترتيب تنفيذي وفق مؤشر أداء مركّب (إنجاز · تحصيل · إنتاجية · انضباط)</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;max-height:340px;overflow-y:auto">
+          <table class="bench-table">
+            <thead>
+              <tr>
+                <th>#</th><th>المركز</th><th>مستفيدون</th><th>موظفون</th>
+                <th>جلسات</th><th>جلسة/موظف</th><th>الإنجاز %</th>
+                <th>التحصيل %</th><th>المؤشر</th>
+              </tr>
+            </thead>
+            <tbody id="centers-benchmark-body"></tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--gray-400);margin-top:10px">
+          <i class="fas fa-info-circle"></i>
+          المؤشر مركَّب من: 30% إنجاز + 30% تحصيل + 20% انضباط (1−إلغاء) + 20% إنتاجية. القيم تتفاعل مع الفلاتر النشطة.
+        </p>
       </div>
 
       <!-- CHARTS ROW 1 -->
@@ -1047,28 +1217,15 @@ body {
       <div class="charts-grid col-1-2">
         <div class="chart-card">
           <div class="chart-header">
-            <div><div class="chart-title">🔔 تنبيهات تشغيلية</div></div>
+            <div>
+              <div class="chart-title">🔔 تنبيهات تشغيلية ذكية</div>
+              <div class="chart-subtitle">مستخرجة آليّاً من البيانات الحالية</div>
+            </div>
           </div>
-          <div class="alert-list">
-            <div class="alert-item danger">
-              <i class="fas fa-exclamation-circle alert-icon"></i>
-              <div class="alert-text">معدل إلغاء الجلسات <strong>17.6%</strong> — يتجاوز الحد المسموح به</div>
-            </div>
-            <div class="alert-item warning">
-              <i class="fas fa-chart-line alert-icon"></i>
-              <div class="alert-text">التحصيل المالي <strong>60.1%</strong> من المستهدف السنوي</div>
-            </div>
-            <div class="alert-item warning">
-              <i class="fas fa-user-times alert-icon"></i>
-              <div class="alert-text"><strong>33 حالة</strong> إعفاء من الرسوم تستوجب المراجعة</div>
-            </div>
+          <div class="alert-list" id="overview-alerts-dynamic">
             <div class="alert-item info">
-              <i class="fas fa-info-circle alert-icon"></i>
-              <div class="alert-text">غياب الموظفين <strong>20 حالة</strong> — قريب من المستهدف المقبول</div>
-            </div>
-            <div class="alert-item success">
-              <i class="fas fa-check-circle alert-icon"></i>
-              <div class="alert-text">نسبة الجلسات المكتملة <strong>54.4%</strong> — ضمن النطاق الآمن</div>
+              <i class="fas fa-spinner fa-spin alert-icon"></i>
+              <div class="alert-text">جارٍ تحليل البيانات…</div>
             </div>
           </div>
         </div>
@@ -1264,14 +1421,10 @@ body {
         <div class="chart-card">
           <div class="chart-header"><div><div class="chart-title">🏆 أعلى موظفين إنتاجية</div><div class="chart-subtitle">حسب عدد الجلسات المنفذة</div></div></div>
           <div class="data-table-wrap">
-            <table class="data-table">
+            <table class="data-table" id="tbl-top-emp">
               <thead><tr><th>#</th><th>اسم الموظف</th><th>عدد الجلسات</th><th>التقييم</th></tr></thead>
-              <tbody>
-                <tr><td><span class="badge blue">1</span></td><td>موظف56</td><td><strong>12</strong></td><td><span class="badge green">ممتاز</span></td></tr>
-                <tr><td><span class="badge blue">2</span></td><td>موظف15</td><td><strong>12</strong></td><td><span class="badge green">ممتاز</span></td></tr>
-                <tr><td><span class="badge blue">3</span></td><td>موظف2</td><td><strong>10</strong></td><td><span class="badge green">جيد جداً</span></td></tr>
-                <tr><td><span class="badge blue">4</span></td><td>موظف85</td><td><strong>10</strong></td><td><span class="badge green">جيد جداً</span></td></tr>
-                <tr><td><span class="badge blue">5</span></td><td>موظف93</td><td><strong>9</strong></td><td><span class="badge amber">جيد</span></td></tr>
+              <tbody id="tbl-top-emp-body">
+              <!-- يُملأ من rebuildDynamicTables -->
               </tbody>
             </table>
           </div>
@@ -1374,7 +1527,7 @@ body {
           <div class="chart-header"><div><div class="chart-title">الخدمات — تفصيلي</div></div></div>
           <div class="data-table-wrap">
             <table class="data-table">
-              <thead><tr><th>الخدمة</th><th>عدد الجلسات</th><th>النسبة</th><th>النوع</th></tr></thead>
+              <thead><tr><th>الخدمة</th><th>عدد الجلسات</th><th>النسبة</th></tr></thead>
               <tbody>
                 <tr><td>العلاج الوظيفي</td><td><strong>90</strong></td><td><span class="badge blue">18.0%</span></td><td><span class="badge green">جلسة</span></td></tr>
                 <tr><td>الإرشاد الأسري</td><td><strong>71</strong></td><td><span class="badge green">14.2%</span></td><td><span class="badge purple">خدمة</span></td></tr>
@@ -1410,25 +1563,25 @@ body {
           <div class="kpi-top"><div class="kpi-icon"><i class="fas fa-coins"></i></div><span class="kpi-badge badge-up">▲ 12%</span></div>
           <div class="kpi-value">339.7K</div>
           <div class="kpi-label">إجمالي التحصيل (ر.س)</div>
-          <div class="kpi-sub">200 عملية قبض</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card blue">
           <div class="kpi-top"><div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div><span class="kpi-badge badge-neutral">مستهدف</span></div>
           <div class="kpi-value">565K</div>
           <div class="kpi-label">الرسوم المستهدفة (ر.س)</div>
-          <div class="kpi-sub">الرسوم السنوية للمستفيدين</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card rose">
           <div class="kpi-top"><div class="kpi-icon"><i class="fas fa-percentage"></i></div><span class="kpi-badge badge-down">▼ فجوة</span></div>
           <div class="kpi-value">60.1%</div>
           <div class="kpi-label">نسبة التحصيل</div>
-          <div class="kpi-sub">الفجوة: 225,300 ر.س</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
         <div class="kpi-card amber">
           <div class="kpi-top"><div class="kpi-icon"><i class="fas fa-gift"></i></div><span class="kpi-badge badge-down">مراجعة</span></div>
           <div class="kpi-value" data-count="33">0</div>
           <div class="kpi-label">حالات إعفاء</div>
-          <div class="kpi-sub">16.5% من إجمالي السجلات</div>
+          <div class="kpi-sub" style="min-height:14px"></div>
         </div>
       </div>
 
@@ -1599,222 +1752,128 @@ body {
         </div>
       </div>
 
+      <!-- شريط النسب الرأسية أعلى الصفحة -->
+      <div class="ratios-row" id="exec-ratios-insights"></div>
+
       <div class="insights-row">
         <div class="insight-card">
           <div class="insight-icon blue"><i class="fas fa-trophy"></i></div>
           <div class="insight-text">
-            <h4>أعلى مركز من حيث المستفيدين</h4>
-            <p>مدرسة ومركز إرادة لمتلازمة داون (نجد) — 84 مستفيداً مشتركاً (42%)</p>
+            <h4>أفضل مركز (مؤشر مركّب)</h4>
+            <p id="ins-card-best-center">—</p>
           </div>
         </div>
         <div class="insight-card">
           <div class="insight-icon green"><i class="fas fa-star"></i></div>
           <div class="insight-text">
             <h4>أكثر خدمة طلباً</h4>
-            <p>العلاج الوظيفي — 90 جلسة (18% من إجمالي الجلسات)</p>
+            <p id="ins-card-top-service">—</p>
           </div>
         </div>
         <div class="insight-card">
           <div class="insight-icon amber"><i class="fas fa-chart-line"></i></div>
           <div class="insight-text">
             <h4>أعلى شهر تحصيلاً</h4>
-            <p>ديسمبر 2024 — 30,250 ر.س (أعلى رقم في السجلات)</p>
+            <p id="ins-card-best-month">—</p>
           </div>
         </div>
         <div class="insight-card">
           <div class="insight-icon rose"><i class="fas fa-exclamation-triangle"></i></div>
           <div class="insight-text">
-            <h4>تحذير: فجوة تحصيل</h4>
-            <p>225,300 ر.س غير محصّلة — 39.9% من الرسوم المستهدفة</p>
+            <h4>فجوة التحصيل</h4>
+            <p id="ins-card-gap">—</p>
           </div>
         </div>
         <div class="insight-card">
           <div class="insight-icon purple"><i class="fas fa-user-check"></i></div>
           <div class="insight-text">
-            <h4>أكثر موظف إنتاجية</h4>
-            <p>موظف56 وموظف15 — 12 جلسة لكل منهما (أعلى إنتاجية)</p>
+            <h4>أكثر موظف إنتاجيّة</h4>
+            <p id="ins-card-top-emp">—</p>
           </div>
         </div>
         <div class="insight-card">
           <div class="insight-icon amber"><i class="fas fa-dna"></i></div>
           <div class="insight-text">
             <h4>أكثر تشخيص شيوعاً</h4>
-            <p>اضطراب طيف التوحد — 38 حالة من إجمالي 492 تشخيصاً</p>
+            <p id="ins-card-top-diag">—</p>
           </div>
         </div>
       </div>
 
       <div class="charts-grid col-2">
         <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">🔍 اكتشاف القيم الشاذة</div></div></div>
-          <div class="alert-list">
-            <div class="alert-item danger">
-              <i class="fas fa-ban alert-icon"></i>
-              <div class="alert-text"><strong>17.6% معدل إلغاء الجلسات</strong> — أعلى من المعيار المقبول (10%)</div>
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">🔍 اكتشاف القيم الشاذة</div>
+              <div class="chart-subtitle">مستخرجة آليّاً من البيانات</div>
             </div>
-            <div class="alert-item danger">
-              <i class="fas fa-money-bill-wave alert-icon"></i>
-              <div class="alert-text"><strong>يوليو 2024</strong> أدنى شهر تحصيلاً: 6,850 ر.س فقط — شذوذ مالي</div>
-            </div>
-            <div class="alert-item warning">
-              <i class="fas fa-user-times alert-icon"></i>
-              <div class="alert-text"><strong>8 حالات توقف إداري</strong> بدون خطة عودة موثقة</div>
-            </div>
-            <div class="alert-item warning">
-              <i class="fas fa-shield-alt alert-icon"></i>
-              <div class="alert-text"><strong>19 حالة غياب بدون عذر</strong> — تستوجب إجراءات تأديبية</div>
-            </div>
+          </div>
+          <div class="alert-list" id="insights-alerts-dynamic">
             <div class="alert-item info">
-              <i class="fas fa-balance-scale alert-icon"></i>
-              <div class="alert-text">توزيع الجنس متوازن: 51.5% إناث vs 48.5% ذكور</div>
+              <i class="fas fa-spinner fa-spin alert-icon"></i>
+              <div class="alert-text">جارٍ تحليل البيانات…</div>
             </div>
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">📊 التوصيات الاستراتيجية</div></div></div>
-          <div class="alert-list">
-            <div class="alert-item success">
-              <i class="fas fa-lightbulb alert-icon"></i>
-              <div class="alert-text">تعزيز فريق التحصيل المالي لرفع النسبة من 60% إلى 80%+ خلال الربع القادم</div>
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">📊 التوصيات الاستراتيجية</div>
+              <div class="chart-subtitle">قرارات قابلة للتنفيذ بأثر متوقَّع</div>
             </div>
-            <div class="alert-item success">
-              <i class="fas fa-lightbulb alert-icon"></i>
-              <div class="alert-text">مراجعة سياسة إلغاء الجلسات وتطبيق نظام تذكير تلقائي للمستفيدين</div>
-            </div>
-            <div class="alert-item success">
-              <i class="fas fa-lightbulb alert-icon"></i>
-              <div class="alert-text">توسيع خدمة العلاج الوظيفي بتوظيف متخصصين إضافيين (أعلى طلب)</div>
-            </div>
-            <div class="alert-item success">
-              <i class="fas fa-lightbulb alert-icon"></i>
-              <div class="alert-text">مراجعة الحالات المتوقفة الـ8 وإعداد خطط إعادة تأهيل أو إنهاء رسمي</div>
-            </div>
-            <div class="alert-item success">
-              <i class="fas fa-lightbulb alert-icon"></i>
-              <div class="alert-text">ربط ملفات الإعفاء (33 حالة) بلجنة دراسة لضبط معايير الإعفاء</div>
+          </div>
+          <div class="alert-list" id="insights-recs-dynamic">
+            <div class="alert-item info">
+              <i class="fas fa-spinner fa-spin alert-icon"></i>
+              <div class="alert-text">جارٍ توليد التوصيات…</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ============================================ PAGE: INTEGRATION -->
+    <!-- ============================================ PAGE: INTEGRATION (LOCAL ONLY) -->
     <div class="page" id="page-integration">
       <div class="section-header">
         <div class="section-icon" style="background:rgba(16,185,129,0.15);color:var(--emerald-lite);">
-          <i class="fas fa-plug"></i>
+          <i class="fas fa-file-excel"></i>
         </div>
         <div>
-          <h2>ربط Google Sheets المباشر</h2>
-          <p>بيانات حية تلقائية من ملف Google Sheets</p>
+          <h2>تحميل البيانات من ملف Excel محلي</h2>
+          <p>اختر ملف <code>.xlsx</code> من جهازك — تُعالج البيانات داخل المتصفح بدون أي اتصال خارجي</p>
         </div>
       </div>
 
-      <!-- Connection Status -->
-      <div class="integration-box" id="connection-status-box" style="margin-bottom:20px">
-        <h3><i class="fas fa-circle" id="conn-dot" style="color:var(--gray-400);font-size:10px"></i> حالة الاتصال</h3>
-        <p id="conn-msg" style="color:var(--gray-400)">لم يتم الربط بعد — أدخل رابط Web App أدناه</p>
-      </div>
-
-      <!-- URL Input -->
-      <div class="chart-card" style="margin-bottom:20px">
-        <div class="chart-header"><div><div class="chart-title">🔗 رابط Google Apps Script Web App</div></div></div>
+      <!-- LOCAL EXCEL LOADER (الطريقة الوحيدة لتحميل البيانات) -->
+      <div class="chart-card" style="margin-bottom:20px;border:2px solid rgba(16,185,129,0.45)">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">📂 اختر ملف Excel</div>
+            <div class="chart-subtitle">يدعم الشيتات السبعة: الموظفين · المستفيدين · الجلسات · جدول الغياب · الحالة الإدارية · التحصيل · تشخيص الحالات</div>
+          </div>
+        </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <input type="text" id="sheet-api-url"
-            placeholder="https://script.google.com/macros/s/YOUR_ID/exec" value="https://script.google.com/macros/s/AKfycbx0ow8snWjnzqYrHiKNLm0PAvDnxrsBP7Cp2XLErWS0CQyFXYc8ytFhHAtiGrLW7wo/exec"
-            style="flex:1;min-width:300px;background:var(--glass-bg);border:1px solid var(--glass-border);
+          <input type="file" id="local-excel-input" accept=".xlsx,.xls"
+            onchange="loadFromLocalExcel(this.files[0])"
+            style="flex:1;min-width:280px;background:var(--glass-bg);border:1px solid var(--glass-border);
                    border-radius:var(--radius-sm);color:var(--white);padding:10px 14px;
-                   font-size:13px;font-family:inherit;direction:ltr">
-          <button class="filter-apply-btn" onclick="connectAndLoad()" style="padding:10px 20px">
-            <i class="fas fa-link"></i> اتصال وتحميل
-          </button>
-          <button class="filter-reset-btn" onclick="testConnection()" style="padding:10px 16px">
-            <i class="fas fa-vial"></i> اختبار
-          </button>
-          <button class="filter-reset-btn" onclick="disconnectSheet()" style="padding:10px 16px">
-            <i class="fas fa-unlink"></i> قطع الاتصال
-          </button>
+                   font-size:13px;font-family:inherit">
+          <button class="filter-reset-btn" onclick="document.getElementById('local-excel-input').value='';"
+            style="padding:10px 16px"><i class="fas fa-times"></i> مسح</button>
         </div>
-        <p style="font-size:11px;color:var(--gray-400);margin-top:10px">
-          <i class="fas fa-info-circle"></i>
-          يُحفظ الرابط تلقائياً في المتصفح — لن تحتاج لإعادة إدخاله
+        <p id="local-excel-status" style="font-size:12px;color:var(--gray-400);margin-top:10px">
+          لم يُحمَّل أي ملف بعد
         </p>
       </div>
 
-      <!-- Auto refresh -->
-      <div class="charts-grid col-2" style="margin-bottom:20px">
-        <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">⚙️ إعدادات التحديث التلقائي</div></div></div>
-          <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh()"
-                style="width:16px;height:16px;accent-color:var(--indigo)">
-              <span style="font-size:13px">تحديث تلقائي</span>
-            </label>
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:12px;color:var(--gray-400)">كل:</span>
-              <select id="refresh-interval" onchange="changeRefreshInterval()"
-                style="background:var(--glass-bg);border:1px solid var(--glass-border);
-                       border-radius:8px;color:var(--white);padding:6px 10px;font-family:inherit;font-size:12px">
-                <option value="60">دقيقة</option>
-                <option value="300" selected>5 دقائق</option>
-                <option value="600">10 دقائق</option>
-                <option value="1800">30 دقيقة</option>
-              </select>
-            </div>
-            <div style="font-size:12px;color:var(--gray-400)">
-              آخر تحديث: <span id="last-sheet-update">—</span>
-            </div>
-          </div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">📊 إحصائيات الاتصال</div></div></div>
-          <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-              <span style="color:var(--gray-400)">عدد مرات التحميل:</span>
-              <span id="load-count" style="font-weight:600">0</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-              <span style="color:var(--gray-400)">آخر مدة استجابة:</span>
-              <span id="last-response-time" style="font-weight:600">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-              <span style="color:var(--gray-400)">حالة الاتصال:</span>
-              <span id="conn-status-text" style="font-weight:600;color:var(--gray-400)">غير متصل</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Steps guide -->
+      <!-- Privacy / Data flow note -->
       <div class="chart-card" style="margin-bottom:20px">
-        <div class="chart-header"><div><div class="chart-title">📋 خطوات الربط (مرة واحدة فقط)</div></div></div>
-        <div style="display:flex;flex-direction:column;gap:16px;padding:4px 0">
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">ارفع الملف على Google Drive</div><div style="font-size:12px;color:var(--gray-400)">drive.google.com ← New ← File upload ← اختر مسودة_الجداول.xlsx</div></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">افتح كـ Google Sheets</div><div style="font-size:12px;color:var(--gray-400)">انقر يمين على الملف ← Open with ← Google Sheets</div></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">افتح محرر Apps Script</div><div style="font-size:12px;color:var(--gray-400)">Extensions ← Apps Script ← احذف الكود الافتراضي</div></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">الصق كود eradah_apps_script.gs</div><div style="font-size:12px;color:var(--gray-400)">انسخ محتوى الملف المرفق كاملاً والصقه ← Ctrl+S للحفظ</div></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">5</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">انشر كـ Web App</div><div style="font-size:12px;color:var(--gray-400)">Deploy ← New deployment ← Web App ← Execute as: Me ← Who has access: Anyone ← Deploy ← انسخ الرابط</div></div>
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">6</div>
-            <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">الصق الرابط في الحقل أعلاه واضغط "اتصال وتحميل"</div><div style="font-size:12px;color:var(--gray-400)">اللوحة ستتحدث تلقائياً من Google Sheets مباشرة 🎉</div></div>
-          </div>
-        </div>
+        <div class="chart-header"><div><div class="chart-title">🔒 الخصوصية ومسار البيانات</div></div></div>
+        <ul style="font-size:13px;color:var(--gray-300);line-height:1.9;padding-right:20px;margin:6px 0">
+          <li>تُقرأ بيانات الملف داخل المتصفح فقط (عبر مكتبة <code>SheetJS</code>) — لا يُرفع شيء إلى أي خادم.</li>
+          <li>يُعاد بناء كل المؤشرات والشرائح والرسوم محلياً عند كل تحميل.</li>
+          <li>لتحديث البيانات: عدّل الملف ثم أعِد رفعه من نفس الحقل أعلاه.</li>
+        </ul>
       </div>
 
     </div><!-- end page-integration -->
@@ -1823,73 +1882,113 @@ body {
 </div><!-- end main-content -->
 
 <script>
-const DATA = {
+
+// ============================================================
+// GLOBAL STATE — متغيرات الحالة العامة
+// ============================================================
+var FILTER_STATE = {
+  mode: 'all',
+  dateFrom: null, dateTo: null,
+  quarter: null, year: 2025,
+  center: '', period: '', service: '', gender: '',
+  program: '', status: '', funding: '', diag: '',
+  'emp-type': '', specialty: '',
+  'fin-type': '', 'abs-who': '', 'abs-reason': '',
+  'admin-status': '', 'sess-type': '',
+  dirty: false, currentPage: 'overview'
+};
+
+var BY_CENTER_DATA = {};  // legacy
+var SLICES_DATA    = {};  // pre-aggregated slices من Apps Script
+var CENTER_MAP     = {};  // ربط أسماء المراكز
+var RAW_DATA       = {    // صفوف خام للفلترة الديناميكية على الواجهة
+  bens: [], emps: [], sessions: [],
+  financial: [], absence: [], admin: [], diagnoses: []
+};
+
+// ============================================================
+// DATA — يُملأ كلياً من Google Sheets عبر applyLiveData
+// لا توجد أرقام ثابتة هنا
+// ============================================================
+// ============================================================
+// DATA — بيانات افتراضية من آخر قراءة للإكسل
+// تُستبدل تلقائياً بالبيانات الحية عند اتصال Google Sheets
+// ============================================================
+var DATA = {
   kpi: {
-    total_employees: 100, total_beneficiaries: 200, total_sessions: 500,
-    completed_sessions: 272, cancelled_sessions: 88,
-    total_absence: 80, total_collection: 339700, total_fees_expected: 565000,
-    total_admin_cases: 40, num_centers: 4
+    total_employees:100, total_beneficiaries:200, total_sessions:500,
+    completed_sessions:272, cancelled_sessions:88, postponed_sessions:61,
+    notdone_sessions:79, total_absence:80, total_collection:339700,
+    total_fees_expected:565000, total_admin_cases:40, num_centers:5
   },
   employees: {
-    by_center:    { 'مكة': 30, 'جلمودة': 24, 'نجد': 23, 'القدس': 23 },
-    by_specialty: { 'علاج وظيفي': 17, 'نطق وتواصل': 13, 'إرشاد أسري': 13,
-                    'علاج طبيعي': 12, 'صحة عامة': 10, 'تأهيل نفسي': 9,
-                    'تأهيل نفسي حركي': 9, 'تربية خاصة': 8, 'خدمة اجتماعية': 8 },
-    by_type: { 'فني': 79, 'إداري': 21 },
-    by_service: { 'العلاج الوظيفي': 18, 'النطق والتواصل': 13, 'الإرشاد الأسري': 13,
-                  'العلاج الطبيعي': 12, 'الصحة العامة': 10, 'التأهيل النفسي': 9,
-                  'التأهيل النفسي الحركي': 9, 'التربية الخاصة': 8, 'الخدمة الاجتماعية': 8 },
-    top_by_sessions: [['موظف56',12],['موظف15',12],['موظف2',10],['موظف85',10],['موظف93',9]]
+    total:100,
+    by_center:{'مدرسة إرادة للتعليم (مكة)':29,'مدرسة إرادة وتمكين لمتلازمة داون (نجد)':25,'مركز إرادة وتمكين لمتلازمة داون (نجد)':21,'مركز إرادة وتمكين للرعاية النهارية (القدس)':16,'مركز إرادة وتمكين لرعاية ذوي الاحتياجات الخاصة (جلمودة)':9},
+    by_specialty:{'علاج وظيفي':17,'نطق وتواصل':13,'إرشاد أسري':13,'علاج طبيعي':12,'صحة عامة':10,'تأهيل نفسي':9,'تأهيل نفسي حركي':9,'تربية خاصة':8,'خدمة اجتماعية':8},
+    by_type:{'فني':79,'إداري':21},
+    by_period:{'صباحي':51,'مسائي':49},
+    by_service:{'العلاج الوظيفي':17,'النطق والتواصل':13,'الإرشاد الأسري':13,'العلاج الطبيعي':12,'الصحة العامة':10,'التأهيل النفسي':9,'التأهيل النفسي الحركي':9,'التربية الخاصة':8,'الخدمة الاجتماعية':8},
+    top_by_sessions:[['موظف56',12],['موظف15',12],['موظف2',10],['موظف85',10],['موظف93',9]]
   },
   beneficiaries: {
-    by_gender:  { 'أنثى': 103, 'ذكر': 97 },
-    by_center:  { 'مدرسة إرادة وتمكين لمتلازمة داون': 42, 'مركز إرادة وتمكين لمتلازمة داون': 42,
-                  'مركز إرادة وتمكين للرعاية النهارية': 41, 'مدرسة إرادة للتعليم': 39,
-                  'مركز إرادة وتمكين لرعاية ذوي الاحتياجات الخاصة': 36 },
-    by_program: { 'فصول': 76, 'جلسات فردية': 62, 'كلاهما': 62 },
-    by_funding: { 'أفراد': 44, 'شركة حديد': 43, 'تأمين / شركات': 42, 'شركة سابك': 40, 'الشؤون الاجتماعية': 31 },
-    by_age:     { 'أقل من 6': 34, '6-12': 104, '12-18': 62 },
-    by_iq:      { '25-49 (شديد)': 24, '50-69 (متوسط)': 55, '70-84 (خفيف)': 39, '85+ (حدي)': 82 }
-  },
-  diagnoses: {
-    top10: { 'اضطراب طيف التوحد': 38, 'اضطراب تواصل اجتماعي': 36, 'فرط الحركة وتشتت الانتباه': 36,
-             'إعاقة ذهنية': 35, 'اضطرابات سلوكية': 34, 'مشكلات لغوية': 33,
-             'اضطراب نفسي حركي': 33, 'اضطراب نفسي': 32, 'تأخر حركي': 27, 'تأخر نمائي': 27 },
-    by_severity: { 'شديد': 98, 'خفيف': 185, 'متوسط': 209 }
+    total:200, total_fees:565000,
+    by_gender:{'أنثى':103,'ذكر':97},
+    by_center:{'مدرسة إرادة للتعليم (مكة)':39,'مدرسة إرادة وتمكين لمتلازمة داون (نجد)':42,'مركز إرادة وتمكين لمتلازمة داون (نجد)':42,'مركز إرادة وتمكين للرعاية النهارية (القدس)':41,'مركز إرادة وتمكين لرعاية ذوي الاحتياجات الخاصة (جلمودة)':36},
+    by_program:{'فصول':76,'جلسات فردية':62,'كلاهما':62},
+    by_funding:{'أفراد':44,'شركة حديد':43,'تأمين / شركات':42,'شركة سابك':40,'الشؤون الاجتماعية':31},
+    by_age:{'أقل من 6':34,'6-12':104,'12-18':62},
+    by_iq:{'25-49 (شديد)':24,'50-69 (متوسط)':55,'70-84 (خفيف)':39,'85+ (حدي)':82}
   },
   sessions: {
-    by_status:   { 'تمت': 272, 'ملغاة': 88, 'مؤجلة': 61, 'لم تتم': 79 },
-    by_type:     { 'جلسة': 354, 'خدمة': 146 },
-    by_service:  { 'العلاج الوظيفي': 90, 'الإرشاد الأسري': 71, 'النطق والتواصل': 69,
-                   'العلاج الطبيعي': 62, 'التأهيل النفسي': 51, 'التأهيل النفسي الحركي': 44,
-                   'التربية الخاصة': 38, 'الخدمة الاجتماعية': 32, 'التغذية': 27, 'التمريض': 16 },
-    monthly: { '2024-06':19,'2024-07':17,'2024-08':29,'2024-09':15,'2024-10':17,
-               '2024-11':23,'2024-12':18,'2025-01':26,'2025-02':19,'2025-03':27,
-               '2025-04':23,'2025-05':23,'2025-06':19,'2025-07':28,'2025-08':25,
-               '2025-09':23,'2025-10':23,'2025-11':19,'2025-12':21,'2026-01':24,
-               '2026-02':15,'2026-03':23,'2026-04':22 }
+    total:500,
+    by_status:{'تمت':272,'ملغاة':88,'مؤجلة':61,'لم تتم':79},
+    by_type:{'جلسة':354,'خدمة':146},
+    by_service:{'العلاج الوظيفي':90,'الإرشاد الأسري':71,'النطق والتواصل':69,'العلاج الطبيعي':62,'التأهيل النفسي':51,'التأهيل النفسي الحركي':44,'التربية الخاصة':38,'الخدمة الاجتماعية':32,'التغذية':27,'التمريض':16},
+    by_period:{'صباحي':261,'مسائي':239},
+    monthly:{'2024-06':19,'2024-07':17,'2024-08':29,'2024-09':15,'2024-10':17,'2024-11':23,'2024-12':18,'2025-01':26,'2025-02':19,'2025-03':27,'2025-04':23,'2025-05':23,'2025-06':19,'2025-07':28,'2025-08':25,'2025-09':23,'2025-10':23,'2025-11':19,'2025-12':21,'2026-01':24,'2026-02':15,'2026-03':23,'2026-04':22}
   },
   absence: {
-    by_who:   { 'مستفيد': 60, 'موظف': 20 },
-    by_reason:{ 'مرضي': 24, 'غياب بعذر': 20, 'غياب بدون عذر': 19, 'إجازة': 17 },
-    monthly:  { '2024-06':3,'2024-07':5,'2024-08':3,'2024-09':8,'2024-10':1,
-                '2024-11':5,'2024-12':9,'2025-01':3,'2025-02':3,'2025-03':3,
-                '2025-04':4,'2025-05':3,'2025-06':3,'2025-08':7,'2025-09':5,
-                '2025-10':4,'2025-11':2,'2025-12':1,'2026-01':1,'2026-02':2 }
+    total:80,
+    by_who:{'مستفيد':60,'موظف':20},
+    by_reason:{'مرضي':24,'غياب بعذر':20,'غياب بدون عذر':19,'إجازة':17},
+    monthly:{'2024-06':3,'2024-07':5,'2024-08':3,'2024-09':8,'2024-10':1,'2024-11':5,'2024-12':9,'2025-01':3,'2025-02':3,'2025-03':3,'2025-04':4,'2025-05':3,'2025-06':3,'2025-08':7,'2025-09':5,'2025-10':4,'2025-11':2,'2025-12':1,'2026-01':1,'2026-02':2}
   },
   admin: {
-    by_status: { 'إعادة قيد': 11, 'متوقف': 8, 'تخرج': 6, 'تم الدمج': 5, 'طي قيد': 5, 'إنهاء خدمة': 5 }
+    total:40,
+    by_status:{'إعادة قيد':11,'متوقف':8,'تخرج':6,'تم الدمج':5,'طي قيد':5,'إنهاء خدمة':5}
   },
   financial: {
-    by_type: { 'سند قبض': 167, 'اعفاء': 33 },
-    monthly: { '2024-01':13950,'2024-02':29550,'2024-03':20600,'2024-04':15700,
-               '2024-05':23000,'2024-06':20950,'2024-07':6850,'2024-08':21300,
-               '2024-09':16700,'2024-10':18600,'2024-11':9250,'2024-12':30250,
-               '2025-01':27850,'2025-02':14000,'2025-03':18650,'2025-04':10800,
-               '2025-05':19700,'2025-06':22000 },
-    total: 339700, count: 200
+    total:339700, count:200,
+    by_type:{'سند قبض':167,'اعفاء':33},
+    monthly:{'2024-01':13950,'2024-02':29550,'2024-03':20600,'2024-04':15700,'2024-05':23000,'2024-06':20950,'2024-07':6850,'2024-08':21300,'2024-09':16700,'2024-10':18600,'2024-11':9250,'2024-12':30250,'2025-01':27850,'2025-02':14000,'2025-03':18650,'2025-04':10800,'2025-05':19700,'2025-06':22000}
+  },
+  diagnoses: {
+    total:492,
+    top10:{'اضطراب طيف التوحد':38,'اضطراب تواصل اجتماعي':36,'فرط الحركة وتشتت الانتباه':36,'إعاقة ذهنية':35,'اضطرابات سلوكية':34,'مشكلات لغوية':33,'اضطراب نفسي حركي':33,'اضطراب نفسي':32,'تأخر حركي':27,'تأخر نمائي':27},
+    top_all:{},
+    by_severity:{'شديد':98,'خفيف':185,'متوسط':209}
   }
 };
+
+// filter_options الافتراضية — تُستبدل من Sheets
+var DEFAULT_FILTER_OPTIONS = {
+  centers:     ['مدرسة إرادة للتعليم (مكة)','مدرسة إرادة وتمكين لمتلازمة داون (نجد)','مركز إرادة وتمكين لمتلازمة داون (نجد)','مركز إرادة وتمكين للرعاية النهارية (القدس)','مركز إرادة وتمكين لرعاية ذوي الاحتياجات الخاصة (جلمودة)'],
+  periods:     ['صباحي','مسائي','كلاهما'],
+  emp_types:   ['فني','إداري'],
+  specialties: ['علاج وظيفي','نطق وتواصل','إرشاد أسري','علاج طبيعي','صحة عامة','تأهيل نفسي','تأهيل نفسي حركي','تربية خاصة','خدمة اجتماعية'],
+  services:    ['العلاج الوظيفي','الإرشاد الأسري','النطق والتواصل','العلاج الطبيعي','التأهيل النفسي','التأهيل النفسي الحركي','التربية الخاصة','الخدمة الاجتماعية','التغذية','التمريض'],
+  sess_types:  ['جلسة','خدمة'],
+  sess_status: ['تمت','ملغاة','مؤجلة','لم تتم'],
+  genders:     ['أنثى','ذكر'],
+  programs:    ['فصول','جلسات فردية','كلاهما'],
+  fundings:    ['أفراد','شركة حديد','تأمين / شركات','شركة سابك','الشؤون الاجتماعية'],
+  abs_who:     ['مستفيد','موظف'],
+  abs_reasons: ['مرضي','غياب بعذر','غياب بدون عذر','إجازة'],
+  adm_status:  ['إعادة قيد','متوقف','تخرج','تم الدمج','طي قيد','إنهاء خدمة'],
+  fin_types:   ['سند قبض','اعفاء'],
+  diagnoses:   ['اضطراب طيف التوحد','اضطراب تواصل اجتماعي','فرط الحركة وتشتت الانتباه','إعاقة ذهنية','اضطرابات سلوكية','مشكلات لغوية','متلازمة داون','صعوبات تعلم']
+};
+
 
 // ============================================================
 // CHART.JS DEFAULTS
@@ -2420,7 +2519,7 @@ const pageMap = {
   absence: { title: 'الغياب', sub: '80 حالة — التحليل والأسباب' },
   admin: { title: 'الحالة الإدارية', sub: '40 حالة إدارية' },
   insights: { title: 'الرؤى الذكية', sub: 'تحليلات وتوصيات مستخرجة من البيانات' },
-  integration: { title: 'ربط Google Sheets', sub: 'كود Apps Script للربط الحي' }
+  integration: { title: 'تحميل ملف Excel', sub: 'تحميل البيانات محلياً من ملف .xlsx' }
 };
 
 function showPage(pageId) {
@@ -2434,11 +2533,22 @@ function showPage(pageId) {
   document.getElementById('topbar-page-title').textContent = meta.title || '';
   document.getElementById('topbar-page-sub').innerHTML = meta.sub || '';
 
-  // ✅ Render dynamic filters for this page
-  renderPageFilters(pageId);
+  // إعادة تعيين قيم الفلاتر التي لا تنتمي للصفحة الجديدة
+  // (لتجنّب فلاتر متراكمة من صفحات سابقة)
+  var pageDef = (PAGE_FILTERS && PAGE_FILTERS[pageId]) || { filters: [] };
+  var allowed = {};
+  (pageDef.filters || []).forEach(function(f){ allowed[f.id.replace('f-','')] = 1; });
+  ['center','period','service','gender','program','status','funding','diag',
+   'emp-type','specialty','fin-type','abs-who','abs-reason','admin-status','sess-type']
+   .forEach(function(k){ if (!allowed[k]) FILTER_STATE[k] = ''; });
 
-  // Reset filter state for extra dropdowns
+  renderPageFilters(pageId);
   FILTER_STATE.currentPage = pageId;
+
+  // أعد تطبيق الفلاتر المتبقّية على الصفحة الجديدة (أو ارجع للوضع الكامل)
+  if (typeof executeFilter === 'function') {
+    try { executeFilter(); } catch(e) { console.warn('executeFilter on showPage:', e.message); }
+  }
 }
 
 function toggleSidebar() {
@@ -2446,11 +2556,8 @@ function toggleSidebar() {
 }
 
 function refreshData() {
-  const btn = document.querySelector('.topbar-btn i.fa-sync-alt');
-  if (btn) { btn.style.animation = 'spin 0.8s linear infinite'; setTimeout(() => btn.style.animation = '', 1000); }
-  const el = document.getElementById('last-update-time');
-  if (el) el.textContent = new Date().toLocaleTimeString('ar-SA');
-  loadFromGoogleSheets();
+  var inp = document.getElementById('local-excel-input');
+  if (inp) inp.click();
 }
 
 // ============================================================
@@ -2494,141 +2601,92 @@ document.head.appendChild(styleEl);
 // ============================================================
 
 // تعريف فلاتر كل صفحة
-const PAGE_FILTERS = {
+// ============================================================
+// PAGE_FILTERS — ديناميكي من filter_options (Apps Script)
+// ============================================================
+var PAGE_FILTERS = {};  // يُبنى من buildPageFilters()
 
-  overview: {
-    label: 'نظرة عامة',
-    filters: [
-      { id:'f-center', icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-period', icon:'🕐', label:'جميع الفترات', options:['صباحي','مسائي'] }
-    ]
-  },
-
-  beneficiaries: {
-    label: 'المستفيدون',
-    filters: [
-      { id:'f-center',  icon:'🏢', label:'جميع المراكز',    options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-gender',  icon:'👤', label:'الجنس',           options:['ذكر','أنثى'] },
-      { id:'f-program', icon:'📋', label:'نوع البرنامج',    options:['فصول','جلسات فردية','كلاهما'] },
-      { id:'f-funding', icon:'💰', label:'مصدر التمويل',    options:['أفراد','شركة حديد','تأمين / شركات','شركة سابك','الشؤون الاجتماعية'] },
-      { id:'f-agegroup',icon:'🎂', label:'الفئة العمرية',   options:['أقل من 6','6-12','12-18','18+'] },
-      { id:'f-diag',    icon:'🧠', label:'التشخيص',         options:['اضطراب طيف التوحد','اضطراب تواصل اجتماعي','فرط الحركة وتشتت الانتباه','إعاقة ذهنية','اضطرابات سلوكية','مشكلات لغوية'] }
-    ]
-  },
-
-  employees: {
-    label: 'الموظفون',
-    filters: [
-      { id:'f-center',    icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-period',    icon:'🕐', label:'الفترة',         options:['صباحي','مسائي'] },
-      { id:'f-emp-type',  icon:'👔', label:'نوع الموظف',    options:['فني','إداري'] },
-      { id:'f-specialty', icon:'🩺', label:'التخصص',        options:['علاج وظيفي','نطق وتواصل','إرشاد أسري','علاج طبيعي','صحة عامة','تأهيل نفسي','تأهيل نفسي حركي','تربية خاصة','خدمة اجتماعية'] }
-    ]
-  },
-
-  sessions: {
-    label: 'الجلسات',
-    filters: [
-      { id:'f-center',  icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-period',  icon:'🕐', label:'الفترة',         options:['صباحي','مسائي'] },
-      { id:'f-sess-type',icon:'🔖', label:'نوع الخدمة',     options:['جلسة','خدمة'] },
-      { id:'f-service', icon:'🩺', label:'الخدمة',         options:['العلاج الوظيفي','الإرشاد الأسري','النطق والتواصل','العلاج الطبيعي','التأهيل النفسي','التأهيل النفسي الحركي','التربية الخاصة','الخدمة الاجتماعية','التغذية','التمريض'] },
-      { id:'f-status',  icon:'📌', label:'حالة الجلسة',   options:['تمت','ملغاة','مؤجلة','لم تتم'] }
-    ]
-  },
-
-  financial: {
-    label: 'التحصيل المالي',
-    filters: [
-      { id:'f-center',   icon:'🏢', label:'جميع المراكز',  options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-fin-type', icon:'💳', label:'نوع التحصيل',   options:['سند قبض','اعفاء'] },
-      { id:'f-funding',  icon:'💰', label:'مصدر التمويل',  options:['أفراد','شركة حديد','تأمين / شركات','شركة سابك','الشؤون الاجتماعية'] }
-    ]
-  },
-
-  absence: {
-    label: 'الغياب',
-    filters: [
-      { id:'f-center',     icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-abs-who',    icon:'👥', label:'نوع الغياب',   options:['مستفيد','موظف'] },
-      { id:'f-abs-reason', icon:'📝', label:'السبب',         options:['مرضي','غياب بعذر','غياب بدون عذر','إجازة'] },
-      { id:'f-period',     icon:'🕐', label:'الفترة',        options:['صباحي','مسائي'] }
-    ]
-  },
-
-  admin: {
-    label: 'الحالة الإدارية',
-    filters: [
-      { id:'f-center',      icon:'🏢', label:'جميع المراكز',    options:['مكة','نجد','القدس','جلمودة'] },
-      { id:'f-admin-status',icon:'📁', label:'الحالة الإدارية', options:['إعادة قيد','متوقف','تخرج','تم الدمج','طي قيد','إنهاء خدمة'] }
-    ]
-  },
-
-  insights: {
-    label: 'الرؤى الذكية',
-    filters: [
-      { id:'f-center', icon:'🏢', label:'جميع المراكز', options:['مكة','نجد','القدس','جلمودة'] }
-    ]
-  },
-
-  integration: { label: 'ربط Google Sheets', filters: [] }
-};
-
-// ---- Render filters for current page ----
-function renderPageFilters(pageId) {
-  const row = document.getElementById('extraFiltersRow');
-  if (!row) return;
-
-  const config = PAGE_FILTERS[pageId];
-  if (!config || config.filters.length === 0) {
-    row.style.display = 'none';
-    return;
+function buildPageFilters(fo) {
+  // fo = filter_options من Sheets
+  if (!fo) return;
+  PAGE_FILTERS = {
+    overview: {
+      label: 'نظرة عامة',
+      filters: [
+        { id:'f-center', icon:'🏢', label:'جميع المراكز', options: fo.centers    ||[] },
+        { id:'f-period', icon:'🕐', label:'جميع الفترات', options: fo.periods    ||[] }
+      ]
+    },
+    beneficiaries: {
+      label: 'المستفيدون',
+      filters: [
+        { id:'f-center',  icon:'🏢', label:'جميع المراكز',   options: fo.centers    ||[] },
+        { id:'f-gender',  icon:'👤', label:'الجنس',           options: fo.genders    ||[] },
+        { id:'f-program', icon:'📋', label:'نوع البرنامج',    options: fo.programs   ||[] },
+        { id:'f-funding', icon:'💰', label:'مصدر التمويل',    options: fo.fundings   ||[] },
+        { id:'f-diag',    icon:'🧠', label:'التشخيص',         options: fo.diagnoses  ||[] }
+      ]
+    },
+    employees: {
+      label: 'الموظفون',
+      filters: [
+        { id:'f-center',    icon:'🏢', label:'جميع المراكز', options: fo.centers     ||[] },
+        { id:'f-period',    icon:'🕐', label:'الفترة',        options: fo.periods     ||[] },
+        { id:'f-emp-type',  icon:'👔', label:'نوع الموظف',   options: fo.emp_types   ||[] },
+        { id:'f-specialty', icon:'🩺', label:'التخصص',        options: fo.specialties ||[] }
+      ]
+    },
+    sessions: {
+      label: 'الجلسات',
+      filters: [
+        { id:'f-center',    icon:'🏢', label:'جميع المراكز', options: fo.centers    ||[] },
+        { id:'f-period',    icon:'🕐', label:'الفترة',        options: fo.periods    ||[] },
+        { id:'f-sess-type', icon:'🔖', label:'نوع الخدمة',   options: fo.sess_types ||[] },
+        { id:'f-service',   icon:'🩺', label:'الخدمة',        options: fo.services   ||[] },
+        { id:'f-status',    icon:'📌', label:'حالة الجلسة',  options: fo.sess_status||[] }
+      ]
+    },
+    financial: {
+      label: 'التحصيل المالي',
+      filters: [
+        { id:'f-center',   icon:'🏢', label:'جميع المراكز', options: fo.centers   ||[] },
+        { id:'f-fin-type', icon:'💳', label:'نوع التحصيل',  options: fo.fin_types ||[] },
+        { id:'f-funding',  icon:'💰', label:'مصدر التمويل', options: fo.fundings  ||[] }
+      ]
+    },
+    absence: {
+      label: 'الغياب',
+      filters: [
+        { id:'f-center',     icon:'🏢', label:'جميع المراكز', options: fo.centers     ||[] },
+        { id:'f-abs-who',    icon:'👥', label:'نوع الغياب',   options: fo.abs_who     ||[] },
+        { id:'f-abs-reason', icon:'📝', label:'السبب',         options: fo.abs_reasons ||[] },
+        { id:'f-period',     icon:'🕐', label:'الفترة',        options: fo.periods     ||[] }
+      ]
+    },
+    admin: {
+      label: 'الحالة الإدارية',
+      filters: [
+        { id:'f-center',       icon:'🏢', label:'جميع المراكز',    options: fo.centers    ||[] },
+        { id:'f-admin-status', icon:'📁', label:'الحالة الإدارية', options: fo.adm_status ||[] }
+      ]
+    },
+    insights: {
+      label: 'الرؤى الذكية',
+      filters: [
+        { id:'f-center', icon:'🏢', label:'جميع المراكز', options: fo.centers ||[] }
+      ]
+    },
+    integration: { label: 'تحميل ملف Excel', filters: [] }
+  };
+  // أعد رسم فلاتر الصفحة الحالية
+  var active = document.querySelector('.nav-item.active');
+  if (active) {
+    var onclick = active.getAttribute('onclick') || '';
+    var m = onclick.match(/showPage\('(\w+)'\)/);
+    if (m) renderPageFilters(m[1]);
   }
-  row.style.display = 'flex';
-
-  // Save current filter values before re-render
-  const savedVals = {};
-  row.querySelectorAll('select[id]').forEach(s => { savedVals[s.id] = s.value; });
-
-  // Build HTML
-  let html = `<span class="extra-filter-label">
-    <i class="fas fa-sliders-h" style="margin-left:6px;color:var(--indigo-lite)"></i>
-    فلاتر ${config.label}:
-  </span>`;
-
-  config.filters.forEach(f => {
-    const saved = savedVals[f.id] || FILTER_STATE[f.id.replace('f-','')] || '';
-    html += `<select class="filter-select" id="${f.id}" onchange="markFilterDirty()" title="${f.label}">
-      <option value="">${f.icon} ${f.label}</option>
-      ${f.options.map(o => `<option value="${o}"${saved===o?' selected':''}>${o}</option>`).join('')}
-    </select>`;
-  });
-
-  html += `<div style="flex:1"></div>
-    <button class="filter-apply-btn" onclick="applyFilter()">
-      <i class="fas fa-filter"></i> تطبيق
-    </button>
-    <button class="filter-reset-btn" onclick="resetFilters()">
-      <i class="fas fa-undo"></i> إعادة تعيين
-    </button>`;
-
-  row.innerHTML = html;
-
-  // Animate in
-  row.style.opacity = '0';
-  requestAnimationFrame(() => {
-    row.style.transition = 'opacity 0.25s ease';
-    row.style.opacity = '1';
-  });
 }
 
-// ============================================================
-// FILTER ENGINE
-// ============================================================
-const FILTER_STATE = {
-  mode:'all', dateFrom:null, dateTo:null, quarter:null, year:2025,
-  center:'', period:'', service:'', gender:'', program:'', status:'', dirty:false
-};
 
 function switchFilterTab(mode, btn) {
   FILTER_STATE.mode = mode;
@@ -2661,140 +2719,1059 @@ function monthInRange(mk) {
   return (y>fy||(y===fy&&m>=fm)) && (y<ty||(y===ty&&m<=tm));
 }
 
+
+// ============================================================
+// FILTER SYSTEM v2 — يعمل مع البيانات الحية من Sheets
+// ============================================================
+
+
+// ============================================================
+// FILTER SYSTEM v3 — فلترة حقيقية بالبيانات الفعلية
+// ============================================================
+
+// by_center: بيانات مجمعة لكل مركز تُخزَّن عند وصول بيانات Sheets
+var BY_CENTER_DATA = {};
+
+// ---- تطبيق الفلتر ----
 function applyFilter() {
+  // 1. قراءة الفلتر الزمني
   if (FILTER_STATE.mode === 'range') {
-    FILTER_STATE.dateFrom = document.getElementById('dateFrom').value || null;
-    FILTER_STATE.dateTo   = document.getElementById('dateTo').value   || null;
+    FILTER_STATE.dateFrom = (calState && calState.from) || null;
+    FILTER_STATE.dateTo   = (calState && calState.to)   || null;
   } else if (FILTER_STATE.mode === 'quarter') {
-    const yr = parseInt(document.getElementById('quarterYear').value);
+    var yr = parseInt((document.getElementById('quarterYear')||{}).value||2025);
     FILTER_STATE.year = yr;
     if (FILTER_STATE.quarter) {
-      const [f,t] = quarterToRange(FILTER_STATE.quarter, yr);
-      FILTER_STATE.dateFrom = f; FILTER_STATE.dateTo = t;
+      var rng = quarterToRange(FILTER_STATE.quarter, yr);
+      FILTER_STATE.dateFrom = rng[0]; FILTER_STATE.dateTo = rng[1];
     }
   } else {
     FILTER_STATE.dateFrom = null; FILTER_STATE.dateTo = null; FILTER_STATE.quarter = null;
   }
-  // Read ALL dynamic filter selects from current page
-  document.querySelectorAll('#extraFiltersRow select[id]').forEach(sel => {
-    const key = sel.id.replace('f-','');
-    FILTER_STATE[key] = sel.value;
+
+  // 2. قراءة الفلاتر المنسدلة
+  document.querySelectorAll('#extraFiltersRow select[id]').forEach(function(sel) {
+    FILTER_STATE[sel.id.replace('f-','')] = sel.value;
   });
+
+  console.log('🔽 Filter applied:', JSON.stringify(FILTER_STATE));
 
   renderFilterChips();
   updateFilterBadge();
-  const fd = computeFilteredData();
-  refreshChartsWithData(fd);
-  refreshKPICards(fd);
+
+  // 3. احسب البيانات المفلترة وطبّقها
+  executeFilter();
   FILTER_STATE.dirty = false;
 }
 
-function computeFilteredData() {
-  const raw = DATA;
-  const filtSessMonthly = {}, filtFinMonthly = {}, filtAbsMonthly = {};
-  Object.entries(raw.sessions.monthly).forEach(([k,v]) => { if(monthInRange(k)) filtSessMonthly[k]=v; });
-  Object.entries(raw.financial.monthly).forEach(([k,v]) => { if(monthInRange(k)) filtFinMonthly[k]=v; });
-  Object.entries(raw.absence.monthly).forEach(([k,v]) => { if(monthInRange(k)) filtAbsMonthly[k]=v; });
+// ---- تنفيذ الفلترة الفعلية على البيانات ----
+// المسار الجديد:
+//   1) إن توفّرت بيانات خام (RAW_DATA) → احسب ديناميكياً عبر computeFilteredData
+//   2) وإلا → ابحث عن slice مُسبق الحساب
+//   3) وإلا → استخدم البيانات الكاملة DATA
+function executeFilter() {
+  var fs = FILTER_STATE;
+  var hasRaw = RAW_DATA && RAW_DATA.bens && RAW_DATA.bens.length;
+  var fd = null, sliceKey = '__live__';
 
-  let filtServices = { ...raw.sessions.by_service };
-  if (FILTER_STATE.service) {
-    filtServices = {};
-    Object.entries(raw.sessions.by_service).forEach(([k,v]) => {
-      if (k.trim()===FILTER_STATE.service.trim()) filtServices[k]=v;
+  if (hasRaw) {
+    fd = computeFilteredData(fs);
+  } else {
+    // مسار slice احتياطي
+    var center = fs.center || '', period = fs.period || '';
+    sliceKey = '__all__';
+    if (center && period) sliceKey = 'c:'+center+'|p:'+period;
+    else if (center)      sliceKey = 'c:'+center;
+    else if (period)      sliceKey = 'p:'+period;
+    if (!SLICES_DATA[sliceKey] && CENTER_MAP[center]) {
+      var sn = CENTER_MAP[center];
+      sliceKey = period ? 'c:'+sn+'|p:'+period : 'c:'+sn;
+    }
+    fd = SLICES_DATA[sliceKey] || null;
+  }
+
+  var label = [fs.center, fs.period, fs.gender, fs.program, fs.service, fs.status,
+               fs['emp-type'], fs.specialty, fs.funding, fs['fin-type'],
+               fs['abs-who'], fs['abs-reason'], fs['admin-status'], fs['sess-type'], fs.diag]
+              .filter(Boolean).join(' • ');
+
+  applyFilteredDataToUI(fd, label);
+  console.log('✅ Filter executed | source:', hasRaw?'RAW':sliceKey,
+              '| مستفيدين:', fd && fd.kpi ? fd.kpi.total_beneficiaries : '—',
+              '| جلسات:', fd && fd.kpi ? fd.kpi.total_sessions : '—');
+}
+
+// ============================================================
+// النسخة القديمة من executeFilter — مُعطّلة (للتوثيق)
+// ============================================================
+function _legacyExecuteFilter() {
+  var fs        = FILTER_STATE;
+  var center    = fs['center']       || '';
+  var period    = fs['period']       || '';
+  var service   = fs['service']      || '';
+  var status    = fs['status']       || '';
+  var gender    = fs['gender']       || '';
+  var program   = fs['program']      || '';
+  var empType   = fs['emp-type']     || '';
+  var specialty = fs['specialty']    || '';
+  var finType   = fs['fin-type']     || '';
+  var absWho    = fs['abs-who']      || '';
+  var absReason = fs['abs-reason']   || '';
+  var admStat   = fs['admin-status'] || '';
+  var sessType  = fs['sess-type']    || '';
+
+  // ============================================================
+  // 1. اختيار الـ slice الصحيح من SLICES_DATA
+  // ============================================================
+  var sliceKey = '__all__';
+
+  if (center && period) {
+    sliceKey = 'c:' + center + '|p:' + period;
+    if (!SLICES_DATA[sliceKey]) {
+      // جرب بالاسم القصير من CENTER_MAP
+      var shortName = CENTER_MAP[center] || center;
+      sliceKey = 'c:' + shortName + '|p:' + period;
+    }
+  } else if (center) {
+    sliceKey = 'c:' + center;
+    if (!SLICES_DATA[sliceKey]) {
+      var shortName2 = CENTER_MAP[center] || center;
+      sliceKey = 'c:' + shortName2;
+    }
+  } else if (period) {
+    sliceKey = 'p:' + period;
+  }
+
+  // إذا لم يوجد الـ slice — استخدم البيانات الكاملة
+  var src = SLICES_DATA[sliceKey] || null;
+
+  if (!src && (center || period)) {
+    console.warn('⚠️ Slice not found:', sliceKey, '| Available:', Object.keys(SLICES_DATA).slice(0,5));
+    // fallback: ابحث بمطابقة جزئية
+    Object.keys(SLICES_DATA).forEach(function(k) {
+      if (!src && center && k.indexOf(center) !== -1 && (!period || k.indexOf(period) !== -1)) {
+        src = SLICES_DATA[k];
+        console.log('📍 Found via partial match:', k);
+      }
     });
   }
-  let filtStatus = { ...raw.sessions.by_status };
-  if (FILTER_STATE.status) {
-    filtStatus = {};
-    Object.entries(raw.sessions.by_status).forEach(([k,v]) => { if(k===FILTER_STATE.status) filtStatus[k]=v; });
-  }
-  let filtGender = { ...raw.beneficiaries.by_gender };
-  if (FILTER_STATE.gender) {
-    filtGender = {};
-    Object.entries(raw.beneficiaries.by_gender).forEach(([k,v]) => { if(k===FILTER_STATE.gender) filtGender[k]=v; });
-  }
-  let filtPrograms = { ...raw.beneficiaries.by_program };
-  if (FILTER_STATE.program) {
-    filtPrograms = {};
-    Object.entries(raw.beneficiaries.by_program).forEach(([k,v]) => { if(k===FILTER_STATE.program) filtPrograms[k]=v; });
-  }
-  let filtEmpCenters = { ...raw.employees.by_center };
-  if (FILTER_STATE.center) {
-    filtEmpCenters = {};
-    Object.entries(raw.employees.by_center).forEach(([k,v]) => { if(k===FILTER_STATE.center) filtEmpCenters[k]=v; });
+
+  var S   = src ? (src.sessions      || {}) : (DATA.sessions      || {});
+  var F   = src ? (src.financial     || {}) : (DATA.financial     || {});
+  var AB  = src ? (src.absence       || {}) : (DATA.absence       || {});
+  var EM  = src ? (src.employees     || {}) : (DATA.employees     || {});
+  var BE  = src ? (src.beneficiaries || {}) : (DATA.beneficiaries || {});
+  var kpi = src ? (src.kpi           || {}) : (DATA.kpi           || {});
+
+  console.log('🔽 Slice:', sliceKey, '| مستفيدين:', kpi.total_beneficiaries, '| موظفين:', kpi.total_employees);
+
+  // ============================================================
+  // 2. فلاتر إضافية على بيانات الـ slice (خدمة، حالة، جنس...)
+  // ============================================================
+  function fk(obj, key) {
+    if (!key) return obj||{};
+    var r={}, k2=key.trim();
+    Object.keys(obj||{}).forEach(function(k){ if(k.trim()===k2) r[k]=obj[k]; });
+    return Object.keys(r).length ? r : (obj||{});
   }
 
-  const totSess = Object.values(filtSessMonthly).reduce((a,b)=>a+b,0);
-  const totFin  = Object.values(filtFinMonthly).reduce((a,b)=>a+b,0);
-  const totAbs  = Object.values(filtAbsMonthly).reduce((a,b)=>a+b,0);
+  function filterMonthly(obj) {
+    if (!fs.dateFrom && !fs.dateTo) return obj||{};
+    var r={};
+    Object.keys(obj||{}).forEach(function(k){ if(monthInRange(k)) r[k]=obj[k]; });
+    return r;
+  }
+
+  var sesMonthly = filterMonthly(S.monthly ||{});
+  var finMonthly = filterMonthly(F.monthly ||{});
+  var absMonthly = filterMonthly(AB.monthly||{});
+
+  var sesStatus  = fk(S.by_status ||{}, status);
+  var sesService = fk(S.by_service||{}, service);
+  var sesSType   = fk(S.by_type   ||{}, sessType);
+  var benGender  = fk(BE.by_gender ||{}, gender);
+  var benProgram = fk(BE.by_program||{}, program);
+  var empTypeF   = fk(EM.by_type     ||{}, empType);
+  var empSpecF   = fk(EM.by_specialty||{}, specialty);
+  var finTypeF   = fk(F.by_type  ||{}, finType);
+  var absWhoF    = fk(AB.by_who   ||{}, absWho);
+  var absReasonF = fk(AB.by_reason||{}, absReason);
+  var admStatF   = fk((DATA.admin||{}).by_status||{}, admStat);
+
+  // ============================================================
+  // 3. تحديث الرسوم
+  // ============================================================
+  function upd(id, obj) {
+    var el=document.getElementById(id); if(!el) return;
+    var ch=Chart.getChart(el); if(!ch) return;
+    var keys=Object.keys(obj||{}), vals=Object.values(obj||{});
+    if(!keys.length) return;
+    ch.data.labels=keys; ch.data.datasets[0].data=vals; ch.update('none');
+  }
+
+  var smKeys=Object.keys(sesMonthly).slice(-16);
+  var smObj={}; smKeys.forEach(function(k){smObj[k]=sesMonthly[k];});
+
+  upd('chart-sessions-monthly', smObj);
+  upd('chart-sessions-detail',  smObj);
+  upd('chart-sessions-status',  sesStatus);
+  upd('chart-services',         sesService);
+  upd('chart-sess-type',        sesSType);
+  upd('chart-financial-monthly',finMonthly);
+  upd('chart-fin-monthly',      finMonthly);
+  upd('chart-absence-monthly',  absMonthly);
+  upd('chart-absence-reasons',  absReasonF);
+  upd('chart-bene-gender',      benGender);
+  upd('chart-programs',         benProgram);
+  upd('chart-funding',          BE.by_funding||{});
+  upd('chart-bene-age',         BE.by_age||{});
+  upd('chart-bene-iq',          BE.by_iq ||{});
+  upd('chart-bene-centers',     BE.by_center||{});
+  upd('chart-emp-centers',      EM.by_center||{});
+  upd('chart-emp-type',         empTypeF);
+  upd('chart-emp-specialty',    empSpecF);
+  upd('chart-emp-specialty2',   empSpecF);
+  upd('chart-admin-status',     admStatF);
+  upd('chart-diagnoses',        (DATA.diagnoses||{}).top10||{});
+
+  // legend الجلسات
+  var legEl=document.getElementById('legend-sessions-status');
+  if(legEl){
+    var cols=['#10b981','#f43f5e','#f59e0b','#0ea5e9'];
+    legEl.innerHTML=Object.keys(sesStatus).map(function(k,i){
+      return '<div class="legend-item"><span class="legend-dot" style="background:'+(cols[i]||'#94a3b8')+'"></span>'+
+             '<span class="legend-name">'+k+'</span><span class="legend-val">'+sesStatus[k]+'</span></div>';
+    }).join('');
+  }
+
+  // ============================================================
+  // 4. تحديث KPI cards بأرقام دقيقة من الـ slice
+  // ============================================================
+  function animN(sel,val,fmt){
+    var el=document.querySelector(sel);if(!el)return;
+    var tgt=parseFloat(val)||0,cur=0,step=Math.max(1,Math.ceil(tgt/50));
+    var t=setInterval(function(){cur=Math.min(cur+step,tgt);
+      el.textContent=fmt?fmt(cur):Math.round(cur).toLocaleString('ar-SA');
+      if(cur>=tgt)clearInterval(t);},16);
+  }
+
+  animN('#page-overview .kpi-card.blue  .kpi-value', kpi.total_beneficiaries);
+  animN('#page-overview .kpi-card.green .kpi-value', kpi.total_employees);
+  animN('#page-overview .kpi-card.amber .kpi-value', kpi.total_sessions);
+  animN('#page-overview .kpi-card.rose  .kpi-value', kpi.total_absence);
+  animN('#kpi-collection', kpi.total_collection, function(v){return (v/1000).toFixed(1)+'K';});
+
+  // stat-mini
+  var eM=document.querySelectorAll('#page-employees .stat-mini-val');
+  if(eM[0])eM[0].textContent=(kpi.total_employees||0).toLocaleString('ar-SA');
+  if(eM[1])eM[1].textContent=empTypeF['فني']  ||Object.values(empTypeF)[0]||0;
+  if(eM[2])eM[2].textContent=empTypeF['إداري']||Object.values(empTypeF)[1]||0;
+
+  var bM=document.querySelectorAll('#page-beneficiaries .stat-mini-val');
+  if(bM[0])bM[0].textContent=(kpi.total_beneficiaries||0).toLocaleString('ar-SA');
+  if(bM[1])bM[1].textContent=benGender['أنثى']||0;
+  if(bM[2])bM[2].textContent=benGender['ذكر'] ||0;
+
+  var sM=document.querySelectorAll('#page-sessions .stat-mini-val');
+  if(sM[0])sM[0].textContent=(kpi.completed_sessions||0).toLocaleString('ar-SA');
+  if(sM[1])sM[1].textContent=(kpi.cancelled_sessions||0).toLocaleString('ar-SA');
+
+  var aM=document.querySelectorAll('#page-absence .stat-mini-val');
+  if(aM[0])aM[0].textContent=(kpi.total_absence||0).toLocaleString('ar-SA');
+
+  // gauge
+  var fExp=kpi.total_fees_expected||DATA.kpi.total_fees_expected||1;
+  var fCol=kpi.total_collection||Object.values(finMonthly).reduce(function(a,b){return a+b;},0)||0;
+  drawGauge('chart-fin-gauge',Math.min(Math.round(fCol/fExp*100),100));
+
+  // شريط ملخص
+  var hasF=center||period||fs.dateFrom||service||status||gender||program||empType||specialty;
+  if(hasF) showFilterSummary(kpi, [center,period].filter(Boolean).join(' — '));
+  else { var bar=document.getElementById('filter-summary-bar');if(bar)bar.remove(); }
+
+  console.log('✅ executeFilter done | slice:',sliceKey,'| مستفيدين:',kpi.total_beneficiaries,'| موظفين:',kpi.total_employees);
+}
+
+
+// ---- تطبيق البيانات المفلترة على الواجهة ----
+
+// ---- تطبيق البيانات المفلترة على الواجهة ----
+function applyFilteredDataToUI(fd, centerLabel) {
+  var isFiltered = fd !== null;
+  var kpi = isFiltered ? (fd.kpi || {}) : DATA.kpi;
+
+  // 1. تحديث الرسوم
+  function upd(id, dataObj) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var ch = Chart.getChart(el);
+    if (!ch || !dataObj) return;
+    var keys = Object.keys(dataObj);
+    var vals = Object.values(dataObj);
+    if (!keys.length) return;
+    ch.data.labels = keys;
+    ch.data.datasets[0].data = vals;
+    ch.update('none');
+  }
+
+  var S  = isFiltered ? (fd.sessions      || {}) : DATA.sessions;
+  var F  = isFiltered ? (fd.financial     || {}) : DATA.financial;
+  var AB = isFiltered ? (fd.absence       || {}) : DATA.absence;
+  var EM = isFiltered ? (fd.employees     || {}) : DATA.employees;
+  var BE = isFiltered ? (fd.beneficiaries || {}) : DATA.beneficiaries;
+
+  // فلتر زمني على monthly
+  function applyTimeFilter(monthly) {
+    if (!FILTER_STATE.dateFrom && !FILTER_STATE.dateTo) return monthly || {};
+    var result = {};
+    Object.keys(monthly||{}).forEach(function(k) {
+      if (monthInRange(k)) result[k] = monthly[k];
+    });
+    return result;
+  }
+
+  var sesMonthly = applyTimeFilter(S.monthly);
+  var finMonthly = applyTimeFilter(F.monthly);
+  var absMonthly = applyTimeFilter(AB.monthly || {});
+
+  // فلتر الخدمة / الحالة
+  var sessStatus  = S.by_status  || {};
+  var sessService = S.by_service || {};
+  var sessType    = S.by_type    || {};
+
+  if (FILTER_STATE.status)       sessStatus  = filterKey(sessStatus,  FILTER_STATE.status);
+  if (FILTER_STATE.service)      sessService = filterKey(sessService, FILTER_STATE.service);
+  if (FILTER_STATE['sess-type']) sessType    = filterKey(sessType,    FILTER_STATE['sess-type']);
+
+  var benGender  = BE.by_gender  || {};
+  var benProgram = BE.by_program || {};
+  var benFunding = BE.by_funding || {};
+  var benAge     = BE.by_age     || {};
+
+  if (FILTER_STATE.gender)  benGender  = filterKey(benGender,  FILTER_STATE.gender);
+  if (FILTER_STATE.program) benProgram = filterKey(benProgram, FILTER_STATE.program);
+  if (FILTER_STATE.funding) benFunding = filterKey(benFunding, FILTER_STATE.funding);
+
+  var empType = EM.by_type      || {};
+  var empSpec = EM.by_specialty || {};
+  if (FILTER_STATE['emp-type'])  empType = filterKey(empType, FILTER_STATE['emp-type']);
+  if (FILTER_STATE.specialty)    empSpec = filterKey(empSpec, FILTER_STATE.specialty);
+
+  var finType = F.by_type || {};
+  if (FILTER_STATE['fin-type']) finType = filterKey(finType, FILTER_STATE['fin-type']);
+
+  var absWho    = AB.by_who    || {};
+  var absReason = AB.by_reason || {};
+  if (FILTER_STATE['abs-who'])    absWho    = filterKey(absWho,    FILTER_STATE['abs-who']);
+  if (FILTER_STATE['abs-reason']) absReason = filterKey(absReason, FILTER_STATE['abs-reason']);
+
+  // تحديث الرسوم
+  upd('chart-sessions-monthly',  sesMonthly);
+  upd('chart-sessions-detail',   sesMonthly);
+  upd('chart-sessions-status',   sessStatus);
+  upd('chart-services',          sessService);
+  upd('chart-sess-type',         sessType);
+  upd('chart-financial-monthly', finMonthly);
+  upd('chart-fin-monthly',       finMonthly);
+  upd('chart-absence-monthly',   absMonthly);
+  upd('chart-absence-reasons',   absReason);
+  upd('chart-bene-gender',       benGender);
+  upd('chart-programs',          benProgram);
+  upd('chart-funding',           benFunding);
+  upd('chart-bene-age',          benAge);
+  upd('chart-bene-iq',           BE.by_iq || {});
+  upd('chart-bene-centers',      BE.by_center || {});
+  upd('chart-emp-centers',       EM.by_center || {});
+  upd('chart-emp-type',          empType);
+  upd('chart-emp-specialty',     empSpec);
+  upd('chart-emp-specialty2',    empSpec);
+  var admBy = (isFiltered && fd.admin && fd.admin.by_status) ? fd.admin.by_status : ((DATA.admin||{}).by_status || {});
+  if (FILTER_STATE['admin-status']) admBy = filterKey(admBy, FILTER_STATE['admin-status']);
+  upd('chart-admin-status',      admBy);
+  var diagTop = (isFiltered && fd.diagnoses && fd.diagnoses.top10 && Object.keys(fd.diagnoses.top10).length)
+                ? fd.diagnoses.top10
+                : ((DATA.diagnoses||{}).top10 || {});
+  upd('chart-diagnoses',         diagTop);
+
+  // 2. تحديث KPI cards
+  function setSub(sel, text) { var e=document.querySelector(sel); if(e) e.textContent=text; }
+  function animN(sel, val, fmt) {
+    var el = document.querySelector(sel);
+    if (!el) return;
+    var tgt = parseFloat(val)||0;
+    var cur=0, step=Math.max(1,Math.ceil(tgt/50));
+    var t=setInterval(function(){
+      cur=Math.min(cur+step,tgt);
+      el.textContent=fmt?fmt(cur):Math.round(cur).toLocaleString('ar-SA');
+      if(cur>=tgt)clearInterval(t);
+    },16);
+  }
+
+  animN('#page-overview .kpi-card.blue   .kpi-value', kpi.total_beneficiaries);
+  animN('#page-overview .kpi-card.green  .kpi-value', kpi.total_employees);
+  animN('#page-overview .kpi-card.amber  .kpi-value', kpi.total_sessions);
+  animN('#page-overview .kpi-card.rose   .kpi-value', kpi.total_absence);
+  animN('#kpi-collection', kpi.total_collection, function(v){return (v/1000).toFixed(1)+'K';});
+
+  // 3. تحديث stat-mini
+  var empTyp = EM.by_type || {};
+  var fni = empTyp['فني']||0, adm2 = empTyp['إداري']||0;
+  var eM = document.querySelectorAll('#page-employees .stat-mini-val');
+  if(eM[0]) eM[0].textContent = (kpi.total_employees||0).toLocaleString('ar-SA');
+  if(eM[1]) eM[1].textContent = fni;
+  if(eM[2]) eM[2].textContent = adm2;
+  if(eM[3]) eM[3].textContent = kpi.total_sessions>0?Math.round(kpi.total_sessions/Math.max(kpi.total_employees,1)):0;
+
+  var bG = BE.by_gender||{};
+  var bM = document.querySelectorAll('#page-beneficiaries .stat-mini-val');
+  if(bM[0]) bM[0].textContent = (kpi.total_beneficiaries||0).toLocaleString('ar-SA');
+  if(bM[1]) bM[1].textContent = bG['أنثى']||0;
+  if(bM[2]) bM[2].textContent = bG['ذكر'] ||0;
+
+  var sM = document.querySelectorAll('#page-sessions .stat-mini-val');
+  if(sM[0]) sM[0].textContent = (kpi.completed_sessions||0).toLocaleString('ar-SA');
+  if(sM[1]) sM[1].textContent = (kpi.cancelled_sessions||0).toLocaleString('ar-SA');
+
+  var aW = AB.by_who||{};
+  var aM = document.querySelectorAll('#page-absence .stat-mini-val');
+  if(aM[0]) aM[0].textContent = (kpi.total_absence||0).toLocaleString('ar-SA');
+  if(aM[1]) aM[1].textContent = aW['مستفيد']||0;
+  if(aM[2]) aM[2].textContent = aW['موظف']  ||0;
+
+  // gauge مالي
+  var finTot = Object.values(finMonthly).reduce(function(a,b){return a+b;},0) || kpi.total_collection||0;
+  var expected = kpi.total_fees_expected || DATA.kpi.total_fees_expected || 1;
+  drawGauge('chart-fin-gauge', Math.min(Math.round(finTot/expected*100),100));
+
+  // KPI صفحة المالية
+  animN('#page-financial .kpi-card.purple .kpi-value', kpi.total_collection,    function(v){return (v/1000).toFixed(1)+'K';});
+  animN('#page-financial .kpi-card.blue   .kpi-value', kpi.total_fees_expected, function(v){return (v/1000).toFixed(0)+'K';});
+  if ((kpi.total_fees_expected||0) > 0) {
+    var pf = ((kpi.total_collection||0)/kpi.total_fees_expected*100).toFixed(1);
+    var ef = document.querySelector('#page-financial .kpi-card.rose .kpi-value');
+    if (ef) ef.textContent = pf + '%';
+  }
+  animN('#page-financial .kpi-card.amber .kpi-value', (finType['اعفاء']||0));
+
+  // KPI صفحة الإدارية
+  if (kpi.total_admin_cases !== undefined) {
+    animN('#page-admin .kpi-card.purple .kpi-value', kpi.total_admin_cases);
+  }
+
+  // legend جلسات
+  var legEl = document.getElementById('legend-sessions-status');
+  if (legEl) {
+    var cols=['#10b981','#f43f5e','#f59e0b','#0ea5e9'];
+    var keys=Object.keys(sessStatus), vals=Object.values(sessStatus);
+    legEl.innerHTML=keys.map(function(k,i){
+      return '<div class="legend-item"><span class="legend-dot" style="background:'+(cols[i]||'#94a3b8')+'"></span>'+
+             '<span class="legend-name">'+k+'</span><span class="legend-val">'+vals[i]+'</span></div>';
+    }).join('');
+  }
+
+  // 4. شريط ملخص الفلترة
+  if (isFiltered || FILTER_STATE.dateFrom) {
+    showFilterSummary(kpi, centerLabel);
+  } else {
+    var bar = document.getElementById('filter-summary-bar');
+    if (bar) bar.remove();
+  }
+
+  // 5. تحديث الرؤى التنفيذية ولوحة مقارنة المراكز
+  try { refreshExecutiveInsights(isFiltered ? fd : null); }
+  catch(e) { console.warn('refreshExecutiveInsights (filter):', e.message); }
+}
+
+// ---- مساعد: فلترة كائن بمفتاح ----
+function filterKey(obj, key) {
+  if (!key || !obj) return obj||{};
+  var result={}, k2=key.trim();
+  Object.keys(obj).forEach(function(k){
+    if(k.trim()===k2) result[k]=obj[k];
+  });
+  return Object.keys(result).length ? result : obj;
+}
+
+// ---- شريط ملخص ----
+function showFilterSummary(kpi, label) {
+  var bar = document.getElementById('filter-summary-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'filter-summary-bar';
+    bar.style.cssText = 'background:rgba(61,90,241,0.15);border:1px solid rgba(61,90,241,0.4);' +
+      'border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px;flex-wrap:wrap;';
+    var pw = document.querySelector('.page.active .section-header');
+    if (pw) pw.parentNode.insertBefore(bar, pw.nextSibling);
+  }
+  var title = label ? ('🏢 ' + label) : '🔽 فلتر نشط';
+  bar.innerHTML =
+    '<span style="color:var(--indigo-lite);font-weight:600">' + title + '</span>' +
+    '<span style="color:var(--gray-400)">|</span>' +
+    '<span style="color:var(--white)">👥 ' + (kpi.total_beneficiaries||0).toLocaleString('ar-SA') + ' مستفيد</span>' +
+    '<span style="color:var(--gray-400)">|</span>' +
+    '<span style="color:var(--sky)">👔 ' + (kpi.total_employees||0).toLocaleString('ar-SA') + ' موظف</span>' +
+    '<span style="color:var(--gray-400)">|</span>' +
+    '<span style="color:var(--amber)">📅 ' + (kpi.total_sessions||0).toLocaleString('ar-SA') + ' جلسة</span>' +
+    '<span style="color:var(--gray-400)">|</span>' +
+    '<span style="color:var(--emerald-lite)">💰 ' + ((kpi.total_collection||0)/1000).toFixed(1) + 'K ر.س</span>' +
+    '<button onclick="resetFilters()" style="margin-right:auto;background:rgba(244,63,94,0.2);border:none;border-radius:6px;' +
+    'color:var(--rose);padding:4px 10px;cursor:pointer;font-size:12px;font-family:inherit;">✕ إلغاء الفلاتر</button>';
+}
+
+// ---- إلغاء الفلاتر ----
+function hasActiveFilters() {
+  var fs=FILTER_STATE;
+  return fs.dateFrom||fs.dateTo||fs.quarter||fs.center||fs.period||fs.service||
+    fs.gender||fs.program||fs.status||fs['emp-type']||fs.specialty||
+    fs['fin-type']||fs['abs-who']||fs['abs-reason']||fs['admin-status']||fs['sess-type'];
+}
+
+// ============================================================
+// computeFilteredData — حساب ديناميكي على الواجهة من RAW_DATA
+// تُرجع نفس شكل slice من Apps Script
+// ============================================================
+function _norm(v){ return (v==null?'':String(v)).trim(); }
+function _eq(a,b){ return _norm(a) === _norm(b); }
+
+function _inDateRange(dateStr, fromStr, toStr) {
+  if (!fromStr && !toStr) return true;
+  if (!dateStr) return false;
+  if (fromStr && dateStr < fromStr) return false;
+  if (toStr   && dateStr > toStr)   return false;
+  return true;
+}
+
+function _ageGroup(dobStr) {
+  if (!dobStr) return '';
+  var d = new Date(dobStr); if (isNaN(d.getTime())) return '';
+  var a = Math.floor((Date.now() - d.getTime()) / (365.25*864e5));
+  return a<6?'أقل من 6':a<12?'6-12':a<18?'12-18':'18+';
+}
+
+function _inc(o,k){ if(k) o[k]=(o[k]||0)+1; }
+function _sortMonthly(o){ var s={}; Object.keys(o).sort().forEach(function(k){s[k]=o[k];}); return s; }
+function _monthKey(dateStr){ if(!dateStr||dateStr.length<7) return null; return dateStr.substring(0,7); }
+
+function computeFilteredData(filters) {
+  var fs = filters || FILTER_STATE;
+  if (!RAW_DATA || !RAW_DATA.bens || !RAW_DATA.bens.length) return null;
+
+  var fc  = _norm(fs.center), fp = _norm(fs.period);
+  // "كلاهما" تعني "كل الفترات" → لا فلترة على الفترة
+  if (fp === 'كلاهما') fp = '';
+  var fg  = _norm(fs.gender), fpr = _norm(fs.program);
+  var ffu = _norm(fs.funding), fdg = _norm(fs.diag);
+  var fet = _norm(fs['emp-type']), fsp = _norm(fs.specialty);
+  var fsv = _norm(fs.service), fst = _norm(fs.status), fsT = _norm(fs['sess-type']);
+  var ffT = _norm(fs['fin-type']);
+  var faw = _norm(fs['abs-who']), far = _norm(fs['abs-reason']);
+  var fas = _norm(fs['admin-status']);
+  var dFrom = fs.dateFrom || null, dTo = fs.dateTo || null;
+
+  // مجموعة هويات المستفيدين المطابقة (إذا وُجد فلتر تشخيص — نقص بها لاحقاً)
+  var diagIdSet = null;
+  if (fdg) {
+    diagIdSet = {};
+    RAW_DATA.diagnoses.forEach(function(d){ if(_eq(d.diag,fdg)) diagIdSet[d.bid]=1; });
+  }
+
+  // فلترة المستفيدين
+  var bens = RAW_DATA.bens.filter(function(b){
+    if (fc  && !_eq(b.center,fc)  && !_eq(b.region,fc)) return false;
+    if (fp  && !_eq(b.period,fp)  && !_eq(b.period,'كلاهما')) return false;
+    if (fg  && !_eq(b.gender,fg)) return false;
+    if (fpr && !_eq(b.program,fpr)) return false;
+    if (ffu && !_eq(b.funding,ffu)) return false;
+    if (diagIdSet && !diagIdSet[b.id]) return false;
+    return true;
+  });
+  var benSet = {}; bens.forEach(function(b){ benSet[b.id]=1; });
+
+  // فلترة الموظفين
+  var emps = RAW_DATA.emps.filter(function(e){
+    if (fc  && !_eq(e.center,fc)) return false;
+    if (fp  && !_eq(e.period,fp)) return false;
+    if (fet && !_eq(e.type,fet)) return false;
+    if (fsp && !_eq(e.specialty,fsp)) return false;
+    return true;
+  });
+  var empSet = {}; emps.forEach(function(e){ empSet[e.id]=1; });
+
+  // فلترة الجلسات
+  var ses = RAW_DATA.sessions.filter(function(s){
+    if (!_inDateRange(s.date, dFrom, dTo)) return false;
+    if (fc  && !_eq(s.center,fc) && !_eq(s.region,fc)) return false;
+    if (fp  && !_eq(s.period,fp)) return false;
+    if (fst && !_eq(s.status,fst)) return false;
+    if (fsv && !_eq(s.service,fsv)) return false;
+    if (fsT && !_eq(s.type,fsT)) return false;
+    if (fg  && !_eq(s.gender,fg)) return false;
+    if (fpr && !_eq(s.program,fpr)) return false;
+    // إذا اختير فلتر مستفيد محدّد عبر بُعد آخر — اقصر على المستفيدين/الموظفين الباقين
+    if ((fc||fp||fg||fpr||ffu||diagIdSet) && !(benSet[s.bid] || empSet[s.eid])) return false;
+    return true;
+  });
+
+  // فلترة التحصيل
+  var fins = RAW_DATA.financial.filter(function(f){
+    if (!_inDateRange(f.date, dFrom, dTo)) return false;
+    if (fc  && !_eq(f.center,fc)) return false;
+    if (fp  && !_eq(f.period,fp) && !_eq(f.period,'كلاهما')) return false;
+    if (ffT && !_eq(f.type,ffT)) return false;
+    if (ffu && !_eq(f.funding,ffu)) return false;
+    if (fg  && !_eq(f.gender,fg)) return false;
+    if (fpr && !_eq(f.program,fpr)) return false;
+    if (!benSet[f.bid]) return false;
+    return true;
+  });
+
+  // فلترة الغياب
+  var abss = RAW_DATA.absence.filter(function(a){
+    if (!_inDateRange(a.date, dFrom, dTo)) return false;
+    if (fc  && a.center && !_eq(a.center,fc)) return false;
+    if (fp  && a.period && !_eq(a.period,fp)) return false;
+    if (faw && !_eq(a.who,faw)) return false;
+    if (far && !_eq(a.reason,far)) return false;
+    if (a.who === 'مستفيد' && !benSet[a.ref_id]) return false;
+    if (a.who === 'موظف'    && !empSet[a.ref_id]) return false;
+    return true;
+  });
+
+  // فلترة الحالة الإدارية
+  var admins = RAW_DATA.admin.filter(function(a){
+    if (!_inDateRange(a.date, dFrom, dTo)) return false;
+    if (fc  && a.center && !_eq(a.center,fc)) return false;
+    if (fas && !_eq(a.status,fas)) return false;
+    if (a.who === 'مستفيد' && !benSet[a.ref_id]) return false;
+    if (a.who === 'موظف'    && !empSet[a.ref_id]) return false;
+    return true;
+  });
+
+  // فلترة التشخيصات (للرسمة)
+  var diags = RAW_DATA.diagnoses.filter(function(d){
+    if (fc && !_eq(d.center,fc)) return false;
+    if (fp && !_eq(d.period,fp) && !_eq(d.period,'كلاهما')) return false;
+    if (fg && !_eq(d.gender,fg)) return false;
+    if (fpr && !_eq(d.program,fpr)) return false;
+    if (!benSet[d.bid]) return false;
+    return true;
+  });
+
+  return _aggregate(bens, emps, ses, fins, abss, admins, diags);
+}
+
+// ============================================================
+// _aggregate — يحوّل الصفوف المفلترة إلى نفس شكل slice
+// ============================================================
+function _aggregate(bens, emps, ses, fins, abss, admins, diags) {
+  // مستفيدون
+  var benByGender={}, benByCenter={}, benByProgram={}, benByFunding={};
+  var benByAge={}, benByIQ={}, benByPeriod={};
+  var totalFees = 0;
+  bens.forEach(function(b){
+    _inc(benByGender,  b.gender);
+    _inc(benByCenter,  b.center);
+    _inc(benByProgram, b.program);
+    _inc(benByFunding, b.funding);
+    _inc(benByPeriod,  b.period);
+    var ag = _ageGroup(b.dob); if(ag) _inc(benByAge, ag);
+    if (b.iq_group) _inc(benByIQ, b.iq_group);
+    totalFees += (b.fees||0);
+  });
+
+  // موظفون
+  var empByType={}, empBySpec={}, empByCenter={}, empByPeriod={}, empByService={};
+  emps.forEach(function(e){
+    _inc(empByType,    e.type);
+    _inc(empBySpec,    e.specialty);
+    _inc(empByCenter,  e.center);
+    _inc(empByPeriod,  e.period);
+    _inc(empByService, e.service);
+  });
+
+  // جلسات
+  var sesByStatus={}, sesByType={}, sesByService={}, sesByPeriod={}, sesMonthly={};
+  var empSesCount={};
+  ses.forEach(function(s){
+    _inc(sesByStatus,  s.status);
+    _inc(sesByType,    s.type);
+    _inc(sesByService, s.service);
+    _inc(sesByPeriod,  s.period);
+    var mk = _monthKey(s.date); if (mk) sesMonthly[mk] = (sesMonthly[mk]||0)+1;
+    if (s.eid) empSesCount[s.eid] = (empSesCount[s.eid]||0)+1;
+  });
+  var top5 = Object.keys(empSesCount).map(function(k){return [k, empSesCount[k]];})
+              .sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+
+  // مالي
+  var finByType={}, finMonthly={}, totalCol=0;
+  fins.forEach(function(f){
+    _inc(finByType, f.type);
+    var mk = _monthKey(f.date); if (mk) finMonthly[mk] = (finMonthly[mk]||0) + (f.amount||0);
+    totalCol += (f.amount||0);
+  });
+
+  // غياب
+  var absByWho={}, absByReason={}, absMonthly={};
+  abss.forEach(function(a){
+    _inc(absByWho,    a.who);
+    _inc(absByReason, a.reason);
+    var mk = _monthKey(a.date); if (mk) absMonthly[mk] = (absMonthly[mk]||0)+1;
+  });
+
+  // إدارية
+  var admByStatus={};
+  admins.forEach(function(a){ _inc(admByStatus, a.status); });
+
+  // تشخيصات
+  var diagAll={}, diagSev={};
+  diags.forEach(function(d){ _inc(diagAll, d.diag); _inc(diagSev, d.severity); });
+  var diagSorted = Object.keys(diagAll).map(function(k){return [k, diagAll[k]];})
+                     .sort(function(a,b){return b[1]-a[1];});
+  var top10 = {};
+  diagSorted.slice(0,10).forEach(function(e){ top10[e[0]]=e[1]; });
 
   return {
-    sessions:      { monthly:filtSessMonthly, by_status:filtStatus, by_service:filtServices, total:totSess },
-    financial:     { monthly:filtFinMonthly,  total:totFin },
-    absence:       { monthly:filtAbsMonthly,  by_reason:raw.absence.by_reason, by_who:raw.absence.by_who, total:totAbs },
-    beneficiaries: { by_gender:filtGender, by_program:filtPrograms,
-                     by_age:raw.beneficiaries.by_age, by_funding:raw.beneficiaries.by_funding,
-                     by_center:raw.beneficiaries.by_center },
-    employees:     { by_center:filtEmpCenters, by_specialty:raw.employees.by_specialty, by_type:raw.employees.by_type },
-    diagnoses: raw.diagnoses, admin: raw.admin
+    kpi: {
+      total_beneficiaries: bens.length,
+      total_employees:     emps.length,
+      total_sessions:      ses.length,
+      completed_sessions:  sesByStatus['تمت']   ||0,
+      cancelled_sessions:  sesByStatus['ملغاة'] ||0,
+      postponed_sessions:  sesByStatus['مؤجلة'] ||0,
+      notdone_sessions:    sesByStatus['لم تتم']||0,
+      total_absence:       abss.length,
+      total_collection:    Math.round(totalCol),
+      total_fees_expected: Math.round(totalFees),
+      total_admin_cases:   admins.length,
+      num_centers:         Object.keys(benByCenter).length || Object.keys(empByCenter).length
+    },
+    employees: {
+      total: emps.length, by_type: empByType, by_specialty: empBySpec,
+      by_center: empByCenter, by_period: empByPeriod, by_service: empByService,
+      top_by_sessions: top5
+    },
+    beneficiaries: {
+      total: bens.length, total_fees: Math.round(totalFees),
+      by_gender: benByGender, by_center: benByCenter, by_program: benByProgram,
+      by_funding: benByFunding, by_age: benByAge, by_iq: benByIQ, by_period: benByPeriod
+    },
+    sessions: {
+      total: ses.length, by_status: sesByStatus, by_type: sesByType,
+      by_service: sesByService, by_period: sesByPeriod, monthly: _sortMonthly(sesMonthly)
+    },
+    absence: {
+      total: abss.length, by_who: absByWho, by_reason: absByReason,
+      monthly: _sortMonthly(absMonthly)
+    },
+    financial: {
+      total: Math.round(totalCol), count: fins.length,
+      by_type: finByType, monthly: _sortMonthly(finMonthly)
+    },
+    admin: { total: admins.length, by_status: admByStatus },
+    diagnoses: { total: diags.length, top10: top10, top_all: diagAll, by_severity: diagSev }
   };
 }
 
-function updateChartData(id, labels, values) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const ch = Chart.getChart(el);
-  if (!ch) return;
-  ch.data.labels = labels;
-  ch.data.datasets[0].data = values;
-  ch.update('active');
-}
+function refreshKPICards(fd) { /* للتوافق — يتم التحديث في applyFilteredDataToUI */ }
 
-function refreshChartsWithData(fd) {
-  const sMths = Object.keys(fd.sessions.monthly);
-  const sVals = Object.values(fd.sessions.monthly);
-  updateChartData('chart-sessions-monthly', sMths, sVals);
-  updateChartData('chart-sessions-detail',  sMths, sVals);
-  updateChartData('chart-sessions-status', Object.keys(fd.sessions.by_status),  Object.values(fd.sessions.by_status));
-  updateChartData('chart-services',        Object.keys(fd.sessions.by_service), Object.values(fd.sessions.by_service));
-  const fMths = Object.keys(fd.financial.monthly);
-  const fVals = Object.values(fd.financial.monthly);
-  updateChartData('chart-financial-monthly', fMths, fVals);
-  updateChartData('chart-fin-monthly',       fMths, fVals);
-  updateChartData('chart-absence-monthly', Object.keys(fd.absence.monthly),  Object.values(fd.absence.monthly));
-  updateChartData('chart-bene-gender',     Object.keys(fd.beneficiaries.by_gender),  Object.values(fd.beneficiaries.by_gender));
-  // Sessions type (if available in filtered data)
-  if (fd.sessions.by_type) updateChartData('chart-sess-type', Object.keys(fd.sessions.by_type), Object.values(fd.sessions.by_type));
-  updateChartData('chart-programs',        Object.keys(fd.beneficiaries.by_program), Object.values(fd.beneficiaries.by_program));
-  updateChartData('chart-emp-centers',     Object.keys(fd.employees.by_center),      Object.values(fd.employees.by_center));
-  const pct = DATA.kpi.total_fees_expected > 0
-    ? Math.min(Math.round((fd.financial.total / DATA.kpi.total_fees_expected)*100), 100) : 0;
-  drawGauge('chart-fin-gauge', pct);
-  // Update sessions-status legend
-  const legendEl = document.getElementById('legend-sessions-status');
-  if (legendEl) {
-    const cols = ['#10b981','#f43f5e','#f59e0b','#0ea5e9'];
-    const keys = Object.keys(fd.sessions.by_status);
-    const vals = Object.values(fd.sessions.by_status);
-    legendEl.innerHTML = keys.map((k,i)=>
-      `<div class="legend-item"><span class="legend-dot" style="background:${cols[i]||'#94a3b8'}"></span><span class="legend-name">${k}</span><span class="legend-val">${vals[i]}</span></div>`
-    ).join('');
+// ============================================================
+// EXECUTIVE INSIGHTS ENGINE — رؤى تنفيذية بعقلية مدير عام
+// ينتج: مقارنة المراكز، نسب رأسية، أعلى/أدنى أداء، تنبيهات،
+// توصيات استراتيجية — كلها ديناميكية من البيانات الفعلية
+// ============================================================
+function computeExecutiveInsights(data, raw) {
+  data = data || DATA;
+  raw  = raw  || RAW_DATA;
+  if (!raw || !raw.bens || raw.bens.length === 0) return null;
+
+  // benById للوصول السريع للمنطقة من معرّف المستفيد
+  var benById = {};
+  raw.bens.forEach(function(b){ benById[b.id] = b; });
+
+  // تجميع لكل منطقة (الاسم القصير: مكة/نجد/...)
+  var byRegion = {};
+  function reg(name) {
+    if (!name) return null;
+    if (!byRegion[name]) byRegion[name] = {
+      name:name, bens:0, emps:0, sessions:0,
+      completed:0, cancelled:0, fees_expected:0, collected:0
+    };
+    return byRegion[name];
   }
+  raw.bens.forEach(function(b){
+    var r = reg(b.region); if (!r) return;
+    r.bens++; r.fees_expected += b.fees || 0;
+  });
+  raw.emps.forEach(function(e){
+    var r = reg(e.center); if (!r) return;
+    r.emps++;
+  });
+  raw.sessions.forEach(function(s){
+    var r = reg(s.region); if (!r) return;
+    r.sessions++;
+    if (s.status === 'تمت')   r.completed++;
+    if (s.status === 'ملغاة') r.cancelled++;
+  });
+  raw.financial.forEach(function(f){
+    var b = benById[f.bid]; if (!b) return;
+    var r = reg(b.region); if (!r) return;
+    r.collected += f.amount || 0;
+  });
+
+  // مشتقّات لكل مركز + درجة أداء مركّبة 0-100
+  var centers = Object.keys(byRegion).map(function(k){
+    var c = byRegion[k];
+    var sess_per_emp   = c.emps>0 ? +(c.sessions/c.emps).toFixed(1) : 0;
+    var bens_per_emp   = c.emps>0 ? +(c.bens/c.emps).toFixed(1) : 0;
+    var completion     = c.sessions>0 ? +(c.completed/c.sessions*100).toFixed(1) : 0;
+    var cancellation   = c.sessions>0 ? +(c.cancelled/c.sessions*100).toFixed(1) : 0;
+    var collection     = c.fees_expected>0 ? +(c.collected/c.fees_expected*100).toFixed(1) : 0;
+    var rev_per_ben    = c.bens>0 ? Math.round(c.collected/c.bens) : 0;
+    var prodScore      = Math.min(sess_per_emp/8*100, 100);
+    var score = +(
+      Math.min(completion,100)*0.30 +
+      Math.min(collection,100)*0.30 +
+      Math.max(0, 100-cancellation)*0.20 +
+      prodScore*0.20
+    ).toFixed(1);
+    return Object.assign({}, c, {
+      sess_per_emp:sess_per_emp, bens_per_emp:bens_per_emp,
+      completion_rate:completion, cancellation_rate:cancellation,
+      collection_rate:collection, rev_per_ben:rev_per_ben, score:score
+    });
+  }).sort(function(a,b){ return b.score - a.score; });
+
+  // النسب الرأسية العامة
+  var k = data.kpi || {};
+  var totalSess = k.total_sessions || 0;
+  var headline = {
+    completion_rate:   totalSess>0 ? +((k.completed_sessions||0)/totalSess*100).toFixed(1) : 0,
+    cancellation_rate: totalSess>0 ? +((k.cancelled_sessions||0)/totalSess*100).toFixed(1) : 0,
+    collection_rate:   k.total_fees_expected>0 ? +((k.total_collection||0)/k.total_fees_expected*100).toFixed(1) : 0,
+    sessions_per_emp:  k.total_employees>0 ? +(totalSess/k.total_employees).toFixed(1) : 0,
+    bens_per_emp:      k.total_employees>0 ? +((k.total_beneficiaries||0)/k.total_employees).toFixed(1) : 0,
+    revenue_per_ben:   k.total_beneficiaries>0 ? Math.round((k.total_collection||0)/k.total_beneficiaries) : 0,
+    fees_gap:          Math.max(0, (k.total_fees_expected||0) - (k.total_collection||0))
+  };
+
+  // أعلى/أدنى مركز لكل بُعد
+  function pickBW(arr, key) {
+    var sorted = arr.slice().filter(function(c){ return c[key]!=null; })
+                    .sort(function(a,b){ return b[key]-a[key]; });
+    return { best: sorted[0]||null, worst: sorted[sorted.length-1]||null };
+  }
+  var byProd = pickBW(centers.filter(function(c){return c.emps>0;}), 'sess_per_emp');
+  var byColl = pickBW(centers.filter(function(c){return c.fees_expected>0;}), 'collection_rate');
+  var byCmpl = pickBW(centers.filter(function(c){return c.sessions>0;}), 'completion_rate');
+  var byCnc  = pickBW(centers.filter(function(c){return c.sessions>=10;}), 'cancellation_rate');
+
+  // أبرز خدمة/موظف/شهر/تشخيص
+  var svcEntries  = Object.entries((data.sessions||{}).by_service || {});
+  var topSvc      = svcEntries.sort(function(a,b){return b[1]-a[1];})[0] || ['—',0];
+  var topEmpArr   = ((data.employees||{}).top_by_sessions || [])[0] || ['—',0];
+  var fmEntries   = Object.entries((data.financial||{}).monthly || {});
+  var bestMonth   = fmEntries.length ? fmEntries.reduce(function(a,b){return b[1]>a[1]?b:a;}) : ['—',0];
+  var worstMonth  = fmEntries.length ? fmEntries.reduce(function(a,b){return b[1]<a[1]?b:a;}) : ['—',0];
+  var topDiagArr  = Object.entries(((data.diagnoses||{}).top10) || {})[0] || ['—',0];
+
+  var top = {
+    best_productivity:  byProd.best  ? {name:byProd.best.name,  value:byProd.best.sess_per_emp}    : null,
+    worst_productivity: byProd.worst ? {name:byProd.worst.name, value:byProd.worst.sess_per_emp}   : null,
+    best_collection:    byColl.best  ? {name:byColl.best.name,  value:byColl.best.collection_rate} : null,
+    worst_collection:   byColl.worst ? {name:byColl.worst.name, value:byColl.worst.collection_rate}: null,
+    best_completion:    byCmpl.best  ? {name:byCmpl.best.name,  value:byCmpl.best.completion_rate} : null,
+    worst_completion:   byCmpl.worst ? {name:byCmpl.worst.name, value:byCmpl.worst.completion_rate}: null,
+    productivity_gap:   (byProd.best&&byProd.worst) ? +(byProd.best.sess_per_emp - byProd.worst.sess_per_emp).toFixed(1) : 0,
+    collection_gap:     (byColl.best&&byColl.worst) ? +(byColl.best.collection_rate - byColl.worst.collection_rate).toFixed(1) : 0,
+    most_demanded_service: {name:topSvc[0], count:topSvc[1]},
+    most_productive_employee: {name:topEmpArr[0], count:topEmpArr[1]},
+    best_revenue_month:  {month:bestMonth[0],  value:Math.round(bestMonth[1])},
+    worst_revenue_month: {month:worstMonth[0], value:Math.round(worstMonth[1])},
+    top_diagnosis:       {name:topDiagArr[0],  count:topDiagArr[1]},
+    best_score_center:   centers[0]||null,
+    worst_score_center:  centers[centers.length-1]||null
+  };
+
+  return _buildAlertsAndRecs(headline, centers, top, k);
 }
 
-function refreshKPICards(fd) {
-  const animEl = (el, target) => {
-    if (!el) return;
-    let cur = 0; const step = Math.max(1, Math.ceil(target/40));
-    const t = setInterval(() => { cur=Math.min(cur+step,target); el.textContent=cur.toLocaleString('ar-SA'); if(cur>=target)clearInterval(t); }, 20);
+function _buildAlertsAndRecs(headline, centers, top, kpi) {
+  var alerts = [], recs = [];
+  function fmtK(v){ return Math.round(v/1000) + 'K ر.س'; }
+
+  // ---- تنبيهات حرجة ----
+  if (headline.cancellation_rate > 15) alerts.push({
+    level:'danger', icon:'fa-ban',
+    text:'معدل الإلغاء العام <strong>'+headline.cancellation_rate+'%</strong> — يتجاوز الحد المقبول (15%)'
+  });
+  if (kpi.total_fees_expected > 0 && headline.collection_rate < 70) alerts.push({
+    level:'warning', icon:'fa-money-bill-wave',
+    text:'فجوة تحصيل <strong>'+fmtK(headline.fees_gap)+'</strong> ('+(100-headline.collection_rate).toFixed(1)+'% غير مُحصَّل)'
+  });
+  centers.forEach(function(c){
+    if (c.sessions >= 10 && c.cancellation_rate > 20) alerts.push({
+      level:'danger', icon:'fa-exclamation-circle',
+      text:'<strong>'+c.name+'</strong> — معدل إلغاء '+c.cancellation_rate+'% (مرتفع جدّاً)'
+    });
+    if (c.fees_expected > 0 && c.collection_rate < 40) alerts.push({
+      level:'danger', icon:'fa-coins',
+      text:'<strong>'+c.name+'</strong> — تحصيل '+c.collection_rate+'% فقط (تدخّل عاجل)'
+    });
+    if (c.emps > 0 && c.bens_per_emp > 12) alerts.push({
+      level:'warning', icon:'fa-users-cog',
+      text:'<strong>'+c.name+'</strong> — '+c.bens_per_emp+' مستفيد/موظف (فوق الطاقة المثلى)'
+    });
+  });
+  if (top.productivity_gap > 5) alerts.push({
+    level:'warning', icon:'fa-balance-scale-right',
+    text:'فجوة إنتاجية بين أعلى وأدنى مركز <strong>'+top.productivity_gap+' جلسة/موظف</strong> — يستوجب إعادة توزيع الموارد'
+  });
+  if (top.worst_revenue_month && top.best_revenue_month && top.best_revenue_month.value > 0) {
+    var ratio = top.worst_revenue_month.value / top.best_revenue_month.value;
+    if (ratio < 0.3 && top.worst_revenue_month.value > 0) alerts.push({
+      level:'info', icon:'fa-chart-area',
+      text:'تذبذب مالي حاد: <strong>'+top.worst_revenue_month.month+'</strong> = '+Math.round(top.worst_revenue_month.value).toLocaleString('ar-SA')+' ر.س فقط (أدنى شهر)'
+    });
+  }
+  if (alerts.length === 0) alerts.push({
+    level:'success', icon:'fa-check-circle',
+    text:'جميع المؤشرات الحرجة ضمن المعدلات المقبولة ✅'
+  });
+
+  // ---- توصيات استراتيجية ----
+  if (headline.collection_rate < 80 && kpi.total_fees_expected > 0) {
+    var gain = Math.round((80-headline.collection_rate)/100 * kpi.total_fees_expected);
+    recs.push({
+      icon:'fa-chart-line',
+      text:'رفع التحصيل من '+headline.collection_rate+'% إلى 80% خلال الربع القادم — أثر متوقَّع: <strong>+'+fmtK(gain)+'</strong>'
+    });
+  }
+  if (headline.cancellation_rate > 10) recs.push({
+    icon:'fa-bell',
+    text:'تطبيق نظام تذكير تلقائي لخفض الإلغاء من '+headline.cancellation_rate+'% إلى 10% (أثر تشغيلي مباشر)'
+  });
+  if (top.worst_collection && top.worst_collection.value < 50) recs.push({
+    icon:'fa-bullseye',
+    text:'تكثيف جهود التحصيل في <strong>'+top.worst_collection.name+'</strong> ('+top.worst_collection.value+'% فقط — الأدنى) — أولوية #1'
+  });
+  if (top.most_demanded_service.count > 0) recs.push({
+    icon:'fa-user-md',
+    text:'توسيع خدمة <strong>'+top.most_demanded_service.name+'</strong> ('+top.most_demanded_service.count+' جلسة — أعلى طلب) عبر استقطاب اختصاصيين إضافيين'
+  });
+  if (top.productivity_gap > 5 && top.best_productivity && top.worst_productivity) recs.push({
+    icon:'fa-people-arrows',
+    text:'نقل تجربة <strong>'+top.best_productivity.name+'</strong> ('+top.best_productivity.value+' جلسة/موظف) إلى <strong>'+top.worst_productivity.name+'</strong> ('+top.worst_productivity.value+') لتقليل الفجوة'
+  });
+  if (top.worst_score_center && top.worst_score_center.score < 50) recs.push({
+    icon:'fa-life-ring',
+    text:'وضع <strong>'+top.worst_score_center.name+'</strong> تحت خطة إنقاذ تشغيلية (مؤشر أداء '+top.worst_score_center.score+'/100)'
+  });
+  if (recs.length === 0) recs.push({
+    icon:'fa-thumbs-up', text:'الأداء العام ضمن المستوى المستهدف — استمرار الخطة الحالية'
+  });
+
+  return {
+    headline: headline, centers: centers, top: top,
+    alerts: alerts.slice(0, 6), recommendations: recs.slice(0, 6)
   };
-  const sessCard = document.querySelector('#page-overview .kpi-card.amber .kpi-value');
-  const roseCard = document.querySelector('#page-overview .kpi-card.rose .kpi-value');
-  animEl(sessCard, fd.sessions.total);
-  animEl(roseCard, fd.absence.total);
-  const collEl = document.getElementById('kpi-collection');
-  if (collEl) { let v=0; const s=Math.max(1,Math.ceil(fd.financial.total/40)); const t2=setInterval(()=>{v=Math.min(v+s,fd.financial.total);collEl.textContent=(v/1000).toFixed(1)+'K';if(v>=fd.financial.total)clearInterval(t2);},20); }
 }
+
+// ============================================================
+// RENDER EXECUTIVE INSIGHTS — تطبيق على الواجهة
+// ============================================================
+function renderExecutiveInsights(ins) {
+  if (!ins) return;
+
+  function setHTML(id, html){ var el=document.getElementById(id); if(el) el.innerHTML=html; }
+  function setText(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+
+  // 1) شريط النسب الرأسية (Headline Ratios) — فوق التنبيهات
+  var h = ins.headline;
+  var ratiosHTML = [
+    _ratioMini(h.completion_rate+'%',   'الإنجاز العام',     h.completion_rate>=75?'up':h.completion_rate<60?'down':null),
+    _ratioMini(h.collection_rate+'%',   'التحصيل من المستهدف', h.collection_rate>=75?'up':h.collection_rate<60?'down':null),
+    _ratioMini(h.cancellation_rate+'%', 'الإلغاء',           h.cancellation_rate<=10?'up':h.cancellation_rate>15?'down':null),
+    _ratioMini(h.sessions_per_emp,      'جلسة/موظف',         null),
+    _ratioMini(h.bens_per_emp,          'مستفيد/موظف',       null),
+    _ratioMini((h.revenue_per_ben).toLocaleString('ar-SA'), 'إيراد/مستفيد (ر.س)', null)
+  ].join('');
+  setHTML('exec-ratios',          ratiosHTML);
+  setHTML('exec-ratios-insights', ratiosHTML);
+
+  // 2) جدول مقارنة المراكز
+  var tbody = document.getElementById('centers-benchmark-body');
+  if (tbody) {
+    tbody.innerHTML = ins.centers.map(function(c, i){
+      var rankCls   = c.score>=70?'top':c.score>=50?'mid':'low';
+      var scoreCls  = c.score>=70?'good':c.score>=50?'mid':'low';
+      var cmpCls    = c.completion_rate>=75?'good':c.completion_rate>=60?'mid':'low';
+      var colCls    = c.collection_rate>=75?'good':c.collection_rate>=50?'mid':'low';
+      return '<tr>'+
+        '<td><span class="bench-rank '+rankCls+'">'+(i+1)+'</span></td>'+
+        '<td><strong>'+c.name+'</strong></td>'+
+        '<td>'+c.bens+'</td>'+
+        '<td>'+c.emps+'</td>'+
+        '<td>'+c.sessions.toLocaleString('ar-SA')+'</td>'+
+        '<td>'+c.sess_per_emp+'</td>'+
+        '<td><span class="pct-bar"><span class="'+cmpCls+'" style="width:'+Math.min(c.completion_rate,100)+'%"></span></span> '+c.completion_rate+'%</td>'+
+        '<td><span class="pct-bar"><span class="'+colCls+'" style="width:'+Math.min(c.collection_rate,100)+'%"></span></span> '+c.collection_rate+'%</td>'+
+        '<td><span class="score-badge '+scoreCls+'">'+c.score+'</span></td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  // 3) بطاقات الرؤى الستّ — صفحة insights
+  var t = ins.top;
+  setHTML('ins-card-best-center',
+    t.best_score_center ? '<strong>'+t.best_score_center.name+'</strong> — مؤشر '+t.best_score_center.score+'/100 ('+t.best_score_center.bens+' مستفيد · '+t.best_score_center.sessions+' جلسة)' : '—');
+  setHTML('ins-card-top-service',
+    t.most_demanded_service.count>0 ? '<strong>'+t.most_demanded_service.name+'</strong> — '+t.most_demanded_service.count+' جلسة' : '—');
+  setHTML('ins-card-best-month',
+    t.best_revenue_month.value>0 ? '<strong>'+t.best_revenue_month.month+'</strong> — '+t.best_revenue_month.value.toLocaleString('ar-SA')+' ر.س' : '—');
+  setHTML('ins-card-gap',
+    h.fees_gap>0 ? '<strong>'+h.fees_gap.toLocaleString('ar-SA')+' ر.س</strong> غير مُحصَّلة ('+(100-h.collection_rate).toFixed(1)+'% من المستهدف)' : 'لا توجد فجوة تحصيل ✅');
+  setHTML('ins-card-top-emp',
+    t.most_productive_employee.count>0 ? '<strong>'+t.most_productive_employee.name+'</strong> — '+t.most_productive_employee.count+' جلسة (الأعلى)' : '—');
+  setHTML('ins-card-top-diag',
+    t.top_diagnosis.count>0 ? '<strong>'+t.top_diagnosis.name+'</strong> — '+t.top_diagnosis.count+' حالة' : '—');
+
+  // 4) التنبيهات الديناميكية (overview + insights)
+  var alertsHTML = ins.alerts.map(function(a){
+    return '<div class="alert-item '+a.level+'"><i class="fas '+a.icon+' alert-icon"></i><div class="alert-text">'+a.text+'</div></div>';
+  }).join('');
+  setHTML('overview-alerts-dynamic', alertsHTML);
+  setHTML('insights-alerts-dynamic', alertsHTML);
+
+  // 5) التوصيات الاستراتيجية
+  setHTML('insights-recs-dynamic', ins.recommendations.map(function(r){
+    return '<div class="alert-item success"><i class="fas '+r.icon+' alert-icon"></i><div class="alert-text">'+r.text+'</div></div>';
+  }).join(''));
+}
+
+function _ratioMini(val, lbl, trend) {
+  var arrow = trend==='up' ? '<i class="fas fa-arrow-up"></i> جيد' :
+              trend==='down' ? '<i class="fas fa-arrow-down"></i> يحتاج تحسين' : '';
+  return '<div class="ratio-mini">'+
+    '<div class="ratio-mini-val">'+val+'</div>'+
+    '<div class="ratio-mini-lbl">'+lbl+'</div>'+
+    (trend ? '<div class="ratio-mini-trend '+trend+'">'+arrow+'</div>' : '')+
+  '</div>';
+}
+
+// ============================================================
+// REFRESH EXECUTIVE INSIGHTS — يُستدعى عند تحميل البيانات أو تطبيق فلتر
+// ============================================================
+function refreshExecutiveInsights(filteredData) {
+  try {
+    var ins = computeExecutiveInsights(filteredData || DATA, RAW_DATA);
+    if (ins) renderExecutiveInsights(ins);
+  } catch(e) { console.warn('refreshExecutiveInsights:', e.message); }
+}
+
+
+
+
 
 function renderFilterChips() {
   const c = document.getElementById('activeFilters');
@@ -2842,340 +3819,984 @@ function updateFilterBadge() {
   const badge = document.getElementById('filterSummaryBadge');
   const text  = document.getElementById('filterSummaryText');
   if (!badge) return;
-  const has = FILTER_STATE.dateFrom||FILTER_STATE.dateTo||FILTER_STATE.quarter
-    ||FILTER_STATE.center||FILTER_STATE.period||FILTER_STATE.service
-    ||FILTER_STATE.gender||FILTER_STATE.program||FILTER_STATE.status;
-  badge.classList.toggle('visible', !!has);
-  if (has) {
+  const keys = ['center','period','service','gender','program','status','funding','diag',
+                'emp-type','specialty','fin-type','abs-who','abs-reason','admin-status','sess-type'];
+  const activeKeys = keys.filter(function(k){ return FILTER_STATE[k]; });
+  const has = !!(FILTER_STATE.dateFrom || FILTER_STATE.dateTo || FILTER_STATE.quarter || activeKeys.length);
+  badge.classList.toggle('visible', has);
+  if (has && text) {
     const parts=[];
     if (FILTER_STATE.mode==='range')   parts.push('نطاق تاريخ');
     if (FILTER_STATE.mode==='quarter') parts.push(FILTER_STATE.quarter+' '+FILTER_STATE.year);
-    if (FILTER_STATE.center)  parts.push(FILTER_STATE.center);
-    if (FILTER_STATE.service) parts.push(FILTER_STATE.service);
-    text.textContent = parts.join(' · ')||'فلتر نشط';
+    activeKeys.forEach(function(k){ parts.push(FILTER_STATE[k]); });
+    text.textContent = parts.slice(0,3).join(' · ') + (parts.length>3 ? ' (+'+(parts.length-3)+')' : '');
   }
 }
 
 function resetFilters() {
-  Object.assign(FILTER_STATE, {mode:'all',dateFrom:null,dateTo:null,quarter:null,year:2025,
-    center:'',period:'',service:'',gender:'',program:'',status:'',dirty:false});
+  Object.assign(FILTER_STATE, {
+    mode:'all', dateFrom:null, dateTo:null, quarter:null, year:2025,
+    center:'', period:'', service:'', gender:'', program:'', status:'',
+    funding:'', diag:'', 'emp-type':'', specialty:'',
+    'fin-type':'', 'abs-who':'', 'abs-reason':'',
+    'admin-status':'', 'sess-type':'',
+    dirty:false
+  });
   document.querySelectorAll('.filter-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
   document.querySelectorAll('.filter-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   document.querySelectorAll('.quarter-btn').forEach(b=>b.classList.remove('active'));
-  // Clear all dynamic filter selects
   document.querySelectorAll('#extraFiltersRow select[id]').forEach(sel => {
     sel.value = '';
     const key = sel.id.replace('f-','');
     FILTER_STATE[key] = '';
   });
-  document.getElementById('activeFilters').innerHTML='';
-  document.getElementById('filterSummaryBadge').classList.remove('visible');
-  initAllCharts();
+  var af = document.getElementById('activeFilters'); if (af) af.innerHTML = '';
+  var fb = document.getElementById('filterSummaryBadge'); if (fb) fb.classList.remove('visible');
+  var bar = document.getElementById('filter-summary-bar'); if (bar) bar.remove();
+  // أعد تطبيق "بلا فلتر" — لإعادة الأرقام الكاملة
+  executeFilter();
   animateCounters();
 }
 
-// ============================================================
-// TIMESTAMP
-// ============================================================
-document.getElementById('last-update-time').textContent =
-  new Date().toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' });
 
 // ============================================================
-// BOOT
+// CUSTOM CALENDAR — تقويم احترافي مع تواريخ البيانات فقط
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  initAllCharts();
-  animateCounters();
-  renderPageFilters('overview'); // init filters for first page
-});
 
-// ============================================================
-// GOOGLE SHEETS LIVE CONNECTOR
-// ============================================================
-var _autoRefreshTimer = null;
-var _loadCount = 0;
-var SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx0ow8snWjnzqYrHiKNLm0PAvDnxrsBP7Cp2XLErWS0CQyFXYc8ytFhHAtiGrLW7wo/exec';
+// ✅ ديناميكي — يتحدث من Sheets
+var VALID_DATES_SET = new Set([]);  // يُملأ من Apps Script
+var DATE_MIN = '2024-01-03';        // يُحدَّث من Apps Script
+var DATE_MAX = '2026-05-02';        // يُحدَّث من Apps Script
 
-function initSheetConnector() {
-  // Use hardcoded URL as default, override with localStorage if user changed it
-  var saved = localStorage.getItem('eradah_sheet_url') || SHEET_API_URL;
-  SHEET_API_URL = saved;
-  var inp = document.getElementById('sheet-api-url');
-  if (inp) inp.value = saved;
+var calState = {
+  mode: null,      // 'from' | 'to'
+  year:  2024,
+  month: 0,        // 0-11
+  from:  null,     // 'YYYY-MM-DD'
+  to:    null,
+  hovering: null
+};
 
-  if (saved) {
-    setConnectionStatus('loading', 'جارٍ تحميل البيانات من Google Sheets...');
-    // Auto-load on page open
-    loadFromGoogleSheets();
+// تحديث التقويم من بيانات Sheets الحية
+function updateCalendarDates(validDatesData) {
+  if (!validDatesData) return;
+  
+  // تحديث Set التواريخ
+  if (validDatesData.dates && validDatesData.dates.length) {
+    VALID_DATES_SET = new Set(validDatesData.dates);
+    console.log('📅 Calendar updated:', VALID_DATES_SET.size, 'valid dates');
   }
-
-  var autoOn = localStorage.getItem('eradah_auto_refresh') !== 'false'; // default ON
-  var toggle = document.getElementById('auto-refresh-toggle');
-  if (toggle) toggle.checked = autoOn;
-  if (autoOn) startAutoRefresh();
-}
-
-async function connectAndLoad() {
-  var inp = document.getElementById('sheet-api-url');
-  var url = inp ? inp.value.trim() : SHEET_API_URL;
-  if (!url) { alert('الرجاء إدخال رابط Web App أولاً'); return; }
-  SHEET_API_URL = url;
-  localStorage.setItem('eradah_sheet_url', url);
-  await loadFromGoogleSheets();
-}
-
-async function loadFromGoogleSheets() {
-  if (!SHEET_API_URL) {
-    setConnectionStatus('error', 'الرابط غير موجود — أدخله في صفحة الربط');
-    return;
-  }
-  setConnectionStatus('loading', 'جارٍ تحميل البيانات من Google Sheets...');
-  var t0 = Date.now();
-  try {
-    // إضافة timestamp لتجاوز الكاش + no-cache headers
-    var url = SHEET_API_URL + (SHEET_API_URL.includes('?') ? '&' : '?') + '_t=' + Date.now();
-    console.log('🔄 Fetching:', url);
-
-    var res = await fetch(url, {
-      method: 'GET',
-      cache: 'no-store',
-      redirect: 'follow'
-    });
-
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText);
-
-    var text = await res.text();
-    console.log('📥 Raw response (first 200):', text.substring(0,200));
-
-    var data;
-    try {
-      data = JSON.parse(text);
-    } catch(parseErr) {
-      throw new Error('استجابة غير صالحة — تأكد من إعدادات Deploy');
-    }
-
-    if (data.error) throw new Error(data.message || 'خطأ في Apps Script');
-
-    // ✅ تطبيق البيانات
-    applyLiveData(data);
-
-    var ms = Date.now() - t0;
-    _loadCount++;
-
-    // تحديث الواجهة
-    var ts = data.generated_at
-      ? new Date(data.generated_at).toLocaleString('ar-SA')
-      : new Date().toLocaleString('ar-SA');
-
-    setConnectionStatus('connected',
-      '✅ متصل — آخر تحديث: ' + ts + ' | مدة الاستجابة: ' + ms + 'ms');
-
-    ['last-sheet-update','last-update-time'].forEach(function(id){
-      var el=document.getElementById(id); if(el) el.textContent=ts;
-    });
-    var rt=document.getElementById('last-response-time'); if(rt) rt.textContent=ms+'ms';
-    var lc=document.getElementById('load-count'); if(lc) lc.textContent=_loadCount;
-
-    // حفظ الرابط
-    localStorage.setItem('eradah_sheet_url', SHEET_API_URL);
-
-  } catch(err) {
-    console.error('❌ Sheets fetch error:', err);
-    setConnectionStatus('error',
-      '❌ ' + err.message + ' — افتح Console (F12) للتفاصيل');
+  
+  // تحديث min/max
+  if (validDatesData.min) DATE_MIN = validDatesData.min;
+  if (validDatesData.max) DATE_MAX = validDatesData.max;
+  
+  // إعادة رسم التقويم إذا كان مفتوحاً
+  var popup = document.getElementById('cal-popup');
+  if (popup && popup.style.display !== 'none') {
+    renderCalendar();
   }
 }
 
-function applyLiveData(liveData) {
-  console.log('📊 Applying live data from Sheets...', liveData);
-
-  // ① استبدال كامل للبيانات
-  if (liveData.kpi)           DATA.kpi           = liveData.kpi;
-  if (liveData.employees)     DATA.employees     = liveData.employees;
-  if (liveData.beneficiaries) DATA.beneficiaries = liveData.beneficiaries;
-  if (liveData.sessions)      DATA.sessions      = liveData.sessions;
-  if (liveData.absence)       DATA.absence       = liveData.absence;
-  if (liveData.admin)         DATA.admin         = liveData.admin;
-  if (liveData.financial)     DATA.financial     = liveData.financial;
-  if (liveData.diagnoses)     DATA.diagnoses     = liveData.diagnoses;
-
-  // ② تحديث KPI cards بالأرقام الجديدة
-  updateLiveKPIs(liveData.kpi);
-
-  // ③ إعادة رسم جميع الرسوم (بعد تحديث DATA)
-  // نستخدم setTimeout لضمان انتهاء تحديث DOM أولاً
+function openCalendar(mode) {
+  calState.mode = mode;
+  // افتح عند أقرب شهر له بيانات
+  var ref = calState.from || DATE_MIN;
+  var d = new Date(ref);
+  calState.year  = d.getFullYear();
+  calState.month = d.getMonth();
+  renderCalendar();
+  var popup = document.getElementById('cal-popup');
+  var btn   = document.getElementById(mode === 'from' ? 'btnFrom' : 'btnTo');
+  var rect  = btn.getBoundingClientRect();
+  popup.style.display = 'block';
+  popup.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+  popup.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
+  popup.style.left  = 'auto';
+  // أغلق عند الضغط خارجه
   setTimeout(function() {
-    try { initAllCharts(); } catch(e) { console.warn('initAllCharts error:', e); }
-  }, 50);
-
-  // ④ تحديث badges القائمة الجانبية
-  updateSidebarBadges(liveData);
-
-  console.log('✅ Live data applied successfully');
+    document.addEventListener('click', closeCal, { once:true });
+  }, 10);
 }
 
-function updateLiveKPIs(kpi) {
-  if (!kpi) return;
+function closeCal(e) {
+  var popup = document.getElementById('cal-popup');
+  if (popup && !popup.contains(e.target)) {
+    popup.style.display = 'none';
+  }
+}
 
-  function animateNum(el, target) {
-    if (!el) return;
-    var tgt = parseInt(target) || 0;
-    var cur = 0, step = Math.max(1, Math.ceil(tgt/50));
-    var t = setInterval(function(){
-      cur = Math.min(cur+step, tgt);
-      el.textContent = cur.toLocaleString('ar-SA');
-      if(cur >= tgt) clearInterval(t);
-    }, 18);
+function calNav(dir) {
+  calState.month += dir;
+  if (calState.month > 11) { calState.month = 0;  calState.year++; }
+  if (calState.month < 0)  { calState.month = 11; calState.year--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  var y = calState.year, m = calState.month;
+  var monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('cal-month-label').textContent = monthNames[m] + ' ' + y;
+
+  var firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+  var daysInMonth = new Date(y, m+1, 0).getDate();
+  var today = new Date().toISOString().slice(0,10);
+
+  var html = '';
+  // خلايا فارغة قبل أول يوم
+  for (var i=0; i<firstDay; i++) html += '<div></div>';
+
+  for (var d=1; d<=daysInMonth; d++) {
+    var pad = d < 10 ? '0'+d : ''+d;
+    var dateStr = y + '-' + (m<9?'0'+(m+1):''+(m+1)) + '-' + pad;
+    var hasData = VALID_DATES_SET.has(dateStr);
+    var cls = ['cal-day'];
+    if (!hasData) cls.push('no-data');
+    else          cls.push('has-data');
+    if (dateStr === today) cls.push('today');
+    // نطاق محدد
+    if (calState.from && dateStr === calState.from) cls.push('selected-start');
+    if (calState.to   && dateStr === calState.to)   cls.push('selected-end');
+    if (calState.from && calState.to &&
+        dateStr > calState.from && dateStr < calState.to) cls.push('in-range');
+    if (calState.from && !calState.to && calState.hovering &&
+        dateStr > calState.from && dateStr <= calState.hovering) cls.push('in-range');
+
+    var disabled = !hasData ? 'disabled' : '';
+    html += '<button class="' + cls.join(' ') + '" ' + disabled +
+            ' onclick="calSelectDay(\'' + dateStr + '\')"' +
+            ' onmouseenter="calHover(\'' + dateStr + '\')">' + d + '</button>';
   }
 
-  // KPI cards في صفحة النظرة العامة
-  var map = [
-    { sel: '#page-overview .kpi-card.blue .kpi-value',   val: kpi.total_beneficiaries },
-    { sel: '#page-overview .kpi-card.green .kpi-value',  val: kpi.total_employees },
-    { sel: '#page-overview .kpi-card.amber .kpi-value',  val: kpi.total_sessions },
-    { sel: '#page-overview .kpi-card.rose .kpi-value',   val: kpi.total_absence },
-    { sel: '#page-overview .kpi-card.sky .kpi-value',    val: kpi.num_centers }
-  ];
-  map.forEach(function(m){
-    var el = document.querySelector(m.sel);
-    if (el && m.val !== undefined) animateNum(el, m.val);
-  });
+  document.getElementById('cal-days').innerHTML = html;
+  updateCalRangeText();
+}
 
-  // KPI التحصيل المالي (K format)
-  var collEl = document.getElementById('kpi-collection');
-  if (collEl && kpi.total_collection !== undefined) {
-    var v=0, tgt=kpi.total_collection, s=Math.max(1,Math.ceil(tgt/50));
-    var t2=setInterval(function(){
-      v=Math.min(v+s,tgt);
-      collEl.textContent=(v/1000).toFixed(1)+'K';
-      if(v>=tgt)clearInterval(t2);
-    },18);
+function calHover(dateStr) {
+  if (calState.from && !calState.to && calState.mode === 'to') {
+    calState.hovering = dateStr;
+    renderCalendar();
   }
+}
 
-  // تحديث sub-text تحت الـ KPI cards
-  var sessCard = document.querySelector('#page-overview .kpi-card.amber .kpi-sub');
-  if (sessCard && kpi.completed_sessions !== undefined) {
-    var pct = kpi.total_sessions > 0
-      ? ((kpi.completed_sessions / kpi.total_sessions)*100).toFixed(1) : 0;
-    sessCard.textContent = kpi.completed_sessions + ' مكتملة (' + pct + '%)';
-  }
+function calSelectDay(dateStr) {
+  if (!VALID_DATES_SET.has(dateStr)) return;
+  var popup = document.getElementById('cal-popup');
 
-  // تحديث KPI cards في باقي الصفحات
-  var finPct = document.querySelector('#page-financial .kpi-card.rose .kpi-value');
-  if (finPct && kpi.total_collection !== undefined && kpi.total_fees_expected > 0) {
-    var p = ((kpi.total_collection / kpi.total_fees_expected)*100).toFixed(1);
-    finPct.textContent = p + '%';
+  if (calState.mode === 'from') {
+    calState.from = dateStr;
+    calState.to   = null;
+    calState.hovering = null;
+    document.getElementById('lblFrom').textContent = 'من: ' + formatDateAr(dateStr);
+    document.getElementById('btnFrom').classList.add('active');
+    // افتح للـ "إلى" تلقائياً
+    setTimeout(function() { openCalendar('to'); }, 200);
+  } else {
+    if (dateStr < calState.from) {
+      // إذا اختار تاريخ أقدم — أعكس الاتجاه
+      calState.to   = calState.from;
+      calState.from = dateStr;
+    } else {
+      calState.to = dateStr;
+    }
+    document.getElementById('lblFrom').textContent = 'من: ' + formatDateAr(calState.from);
+    document.getElementById('lblTo').textContent   = 'إلى: ' + formatDateAr(calState.to);
+    document.getElementById('btnTo').classList.add('active');
+    popup.style.display = 'none';
+    // حدّث display
+    var disp = document.getElementById('date-range-display');
+    disp.style.display = 'inline-flex';
+    disp.innerHTML = '<i class="fas fa-calendar-check" style="margin-left:6px;color:var(--emerald-lite)"></i>' +
+      formatDateAr(calState.from) + ' ← ' + formatDateAr(calState.to);
+    // حفظ في FILTER_STATE
+    FILTER_STATE.dateFrom = calState.from;
+    FILTER_STATE.dateTo   = calState.to;
   }
+  renderCalendar();
+}
+
+function updateCalRangeText() {
+  var el = document.getElementById('cal-range-text');
+  if (!el) return;
+  if (calState.from && calState.to)
+    el.textContent = formatDateAr(calState.from) + ' — ' + formatDateAr(calState.to);
+  else if (calState.from)
+    el.textContent = 'من: ' + formatDateAr(calState.from) + ' — اختر تاريخ النهاية';
+  else
+    el.textContent = 'اختر تاريخ البداية';
+}
+
+function calQuickRange(days) {
+  var maxDate = new Date(DATE_MAX);
+  var fromDate = new Date(maxDate - days*86400*1000);
+  calState.from = fromDate.toISOString().slice(0,10);
+  calState.to   = DATE_MAX;
+  FILTER_STATE.dateFrom = calState.from;
+  FILTER_STATE.dateTo   = calState.to;
+  document.getElementById('lblFrom').textContent = 'من: ' + formatDateAr(calState.from);
+  document.getElementById('lblTo').textContent   = 'إلى: ' + formatDateAr(calState.to);
+  document.getElementById('btnFrom').classList.add('active');
+  document.getElementById('btnTo').classList.add('active');
+  var disp = document.getElementById('date-range-display');
+  disp.style.display = 'inline-flex';
+  disp.innerHTML = '<i class="fas fa-calendar-check" style="margin-left:6px;color:var(--emerald-lite)"></i>' +
+    formatDateAr(calState.from) + ' ← ' + formatDateAr(calState.to);
+  document.getElementById('cal-popup').style.display = 'none';
+  renderCalendar();
+}
+
+function resetDateRange() {
+  calState.from = null; calState.to = null; calState.hovering = null;
+  FILTER_STATE.dateFrom = null; FILTER_STATE.dateTo = null;
+  document.getElementById('lblFrom').textContent = 'من: اختر تاريخ';
+  document.getElementById('lblTo').textContent   = 'إلى: اختر تاريخ';
+  document.getElementById('btnFrom').classList.remove('active');
+  document.getElementById('btnTo').classList.remove('active');
+  document.getElementById('date-range-display').style.display = 'none';
+}
+
+function formatDateAr(dateStr) {
+  if (!dateStr) return '';
+  var parts = dateStr.split('-');
+  var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+}
+
+// تجاوز قراءة dateFrom/dateTo في applyFilter — نقرأ من calState مباشرة
+
+
+// ============================================================
+// DYNAMIC TABLES & CONTENT
+// ============================================================
+function rebuildDynamicTables() {
+  var tbody = document.getElementById('tbl-top-emp-body') ||
+              document.querySelector('#page-employees table tbody');
+  if (tbody && DATA.employees && DATA.employees.top_by_sessions) {
+    var labels=['ممتاز','ممتاز','جيد جداً','جيد جداً','جيد'];
+    var bcs=['green','green','green','amber','amber'];
+    tbody.innerHTML = DATA.employees.top_by_sessions.map(function(e,i){
+      return '<tr><td><span class="badge blue">'+(i+1)+'</span></td>'+
+             '<td>'+e[0]+'</td><td><strong>'+e[1]+'</strong></td>'+
+             '<td><span class="badge '+bcs[i]+'">'+labels[i]+'</span></td></tr>';
+    }).join('');
+  }
+  var stbody = document.querySelector('#page-sessions .data-table tbody');
+  if (stbody && DATA.sessions && DATA.sessions.by_service) {
+    var ent=Object.entries(DATA.sessions.by_service).sort(function(a,b){return b[1]-a[1];});
+    var tot=DATA.kpi.total_sessions||1;
+    var bc2=['blue','green','green','amber','amber','purple','gray','gray','gray','gray'];
+    stbody.innerHTML=ent.map(function(e,i){
+      return '<tr><td>'+e[0]+'</td><td><strong>'+e[1]+'</strong></td>'+
+             '<td><span class="badge '+(bc2[i]||'gray')+'">'+(e[1]/tot*100).toFixed(1)+'%</span></td></tr>';
+    }).join('');
+  }
+  var atbody = document.querySelector('#page-admin .data-table tbody');
+  if (atbody && DATA.admin && DATA.admin.by_status) {
+    var ae=Object.entries(DATA.admin.by_status).sort(function(a,b){return b[1]-a[1];});
+    var at=DATA.kpi.total_admin_cases||1;
+    var abc=['green','amber','blue','purple','rose','rose'];
+    atbody.innerHTML=ae.map(function(e,i){
+      return '<tr><td>'+e[0]+'</td><td><strong>'+e[1]+'</strong></td>'+
+             '<td><span class="badge '+(abc[i]||'gray')+'">'+(e[1]/at*100).toFixed(1)+'%</span></td></tr>';
+    }).join('');
+  }
+  var plist = document.querySelector('#page-beneficiaries .progress-list');
+  if (plist && DATA.beneficiaries && DATA.beneficiaries.by_center) {
+    var cens=Object.entries(DATA.beneficiaries.by_center).sort(function(a,b){return b[1]-a[1];});
+    var mx=cens[0]?cens[0][1]:1;
+    var bc=['var(--indigo)','var(--emerald)','var(--sky)','var(--amber)','var(--purple)'];
+    var lc=['var(--indigo-lite)','var(--emerald-lite)','var(--sky)','var(--amber)','var(--purple)'];
+    plist.innerHTML=cens.map(function(e,i){
+      var p=Math.round(e[1]/mx*100);
+      return '<div class="progress-item">'+
+        '<div class="progress-info"><span class="progress-name">'+e[0]+'</span>'+
+        '<span class="progress-value" style="color:'+lc[i%5]+'">'+e[1]+'</span></div>'+
+        '<div class="progress-bar"><div class="progress-fill" style="width:'+p+'%;background:'+bc[i%5]+'"></div></div></div>';
+    }).join('');
+  }
+  function sh(sel,txt){var e=document.querySelector(sel);if(e)e.textContent=txt;}
+  sh('#page-employees .section-header p',     DATA.kpi.total_employees+' موظف — التخصصات والإنتاجية وتوزيع الأعباء');
+  sh('#page-beneficiaries .section-header p', DATA.kpi.total_beneficiaries+' مستفيد — توزيعات شاملة وتحليل التشخيصات');
+  sh('#page-sessions .section-header p',      DATA.kpi.total_sessions+' جلسة — الحالات والخدمات والتوزيع الزمني');
+  sh('#page-absence .section-header p',       DATA.kpi.total_absence+' حالة غياب — الأسباب والتوزيع');
+  sh('#page-admin .section-header p',         DATA.kpi.total_admin_cases+' حالة إدارية — التخرج والتوقف وإعادة القيد');
 }
 
 function updateSidebarBadges(liveData) {
-  // تحديث الأرقام في القائمة الجانبية
-  var badgeMap = {
-    'beneficiaries': liveData.kpi && liveData.kpi.total_beneficiaries,
-    'employees':     liveData.kpi && liveData.kpi.total_employees,
-    'sessions':      liveData.kpi && liveData.kpi.total_sessions
-  };
+  if(!liveData||!liveData.kpi) return;
+  var kpi=liveData.kpi;
+  var map={beneficiaries:kpi.total_beneficiaries,employees:kpi.total_employees,
+           sessions:kpi.total_sessions,absence:kpi.total_absence,admin:kpi.total_admin_cases};
   document.querySelectorAll('.nav-item').forEach(function(item){
-    var onclick = item.getAttribute('onclick')||'';
-    var match = onclick.match(/showPage\('(\w+)'\)/);
-    if(!match) return;
-    var page = match[1];
-    var badge = item.querySelector('.nav-badge');
-    if(badge && badgeMap[page]) badge.textContent = badgeMap[page];
+    var oc=item.getAttribute('onclick')||'';
+    var m=oc.match(/showPage\('(\w+)'\)/);
+    if(!m) return;
+    var badge=item.querySelector('.nav-badge');
+    if(badge&&map[m[1]]!==undefined&&map[m[1]]!==null)
+      badge.textContent=(map[m[1]]||0).toLocaleString('ar-SA');
   });
 }
 
-async function testConnection() {
-  var inp = document.getElementById('sheet-api-url');
-  var url = (inp ? inp.value.trim() : '') || SHEET_API_URL;
-  if (!url) { alert('أدخل الرابط أولاً'); return; }
-  SHEET_API_URL = url;
-  setConnectionStatus('loading', 'جارٍ اختبار الاتصال...');
-  try {
-    var res  = await fetch(url + '?_t=' + Date.now(), { cache:'no-store', redirect:'follow' });
-    var text = await res.text();
-    var data = JSON.parse(text);
-    if (data.error) throw new Error(data.message);
-    setConnectionStatus('connected',
-      '✅ الاتصال ناجح! | موظفين: '+(data.kpi&&data.kpi.total_employees||'?')+
-      ' | مستفيدين: '+(data.kpi&&data.kpi.total_beneficiaries||'?')+
-      ' | جلسات: '+(data.kpi&&data.kpi.total_sessions||'?')+
-      ' | تحصيل: '+((data.kpi&&data.kpi.total_collection||0).toLocaleString('ar-SA'))+' ر.س');
-    // تحميل كامل بعد نجاح الاختبار
-    setTimeout(function(){ applyLiveData(data); }, 500);
-  } catch(err) {
-    setConnectionStatus('error', '❌ ' + err.message);
-    console.error('Test error:', err);
-  }
-}
 
-function disconnectSheet() {
-  SHEET_API_URL = '';
-  localStorage.removeItem('eradah_sheet_url');
-  localStorage.removeItem('eradah_auto_refresh');
-  stopAutoRefresh();
-  var inp = document.getElementById('sheet-api-url'); if(inp) inp.value='';
-  var tog = document.getElementById('auto-refresh-toggle'); if(tog) tog.checked=false;
-  setConnectionStatus('disconnected','تم قطع الاتصال');
-}
-
-function toggleAutoRefresh() {
-  var on = document.getElementById('auto-refresh-toggle').checked;
-  localStorage.setItem('eradah_auto_refresh', on);
-  on ? startAutoRefresh() : stopAutoRefresh();
-}
-function changeRefreshInterval() {
-  if (document.getElementById('auto-refresh-toggle').checked) { stopAutoRefresh(); startAutoRefresh(); }
-}
-function startAutoRefresh() {
-  stopAutoRefresh();
-  var secs = parseInt(document.getElementById('refresh-interval').value)||300;
-  _autoRefreshTimer = setInterval(loadFromGoogleSheets, secs*1000);
-}
-function stopAutoRefresh() {
-  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer=null; }
-}
-
+// ============================================================
+// LOCAL-MODE STATUS HELPER (Apps Script connector removed)
+// ============================================================
 function setConnectionStatus(state, msg) {
-  var dot  = document.getElementById('conn-dot');
-  var txt  = document.getElementById('conn-msg');
-  var stxt = document.getElementById('conn-status-text');
-  var box  = document.getElementById('connection-status-box');
   var liveDot = document.querySelector('.live-dot');
-  var colors = {
-    connected:    '#10b981',
-    loading:      '#f59e0b',
-    error:        '#f43f5e',
-    disconnected: '#94a3b8',
-    saved:        '#0ea5e9'
-  };
-  var labels = {
-    connected:'متصل ✅', loading:'جارٍ التحميل...', error:'خطأ ❌',
-    disconnected:'غير متصل', saved:'محفوظ'
-  };
-  var col = colors[state] || '#94a3b8';
-  if (dot)  { dot.style.color = col; dot.style.fontSize = '10px'; }
-  if (txt)  { txt.textContent = msg; txt.style.color = col === '#94a3b8' ? '' : col; }
-  if (stxt) { stxt.textContent = labels[state]||state; stxt.style.color = col; }
-  if (box)  { box.style.borderColor = col; }
-  // تحديث نقطة الحياة في الـ topbar
-  if (liveDot) {
-    liveDot.style.background = col;
-    liveDot.title = labels[state] || state;
-  }
-  // إضافة spinner للـ loading
-  var btn = document.getElementById('btn-live-refresh');
-  if (btn) {
-    var icon = btn.querySelector('i');
-    if (icon) {
-      icon.className = state === 'loading'
-        ? 'fas fa-spinner fa-spin'
-        : 'fas fa-cloud-download-alt';
-      icon.style.color = col;
-    }
-  }
+  var colors = { ok:'#10b981', loading:'#f59e0b', error:'#f43f5e', idle:'#94a3b8' };
+  var col = colors[state] || colors.idle;
+  if (liveDot) { liveDot.style.background = col; liveDot.title = msg || ''; }
 }
 
+
+// ============================================================
+// LOCAL EXCEL LOADER — قراءة ملف .xlsx مباشرة في المتصفح (وضع الاختبار)
+// يحاكي نفس منطق eradah_apps_script.gs دون الحاجة لـ Google Sheets
+// ============================================================
+function loadFromLocalExcel(file) {
+  if (!file) return;
+  if (typeof XLSX === 'undefined') {
+    setLocalExcelStatus('error', 'مكتبة XLSX لم تُحمَّل — تحقق من الاتصال بالإنترنت');
+    return;
+  }
+  setLocalExcelStatus('loading', 'جارٍ قراءة الملف "' + file.name + '" …');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var t0 = performance.now();
+      var wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array', cellDates:true });
+      var sheets = {};
+      ['الموظفين','المستفيدين','الجلسات','جدول الغياب','الحالة الإدارية','التحصيل','تشخيص الحالات']
+        .forEach(function(name){
+          var sh = wb.Sheets[name];
+          sheets[name] = sh ? XLSX.utils.sheet_to_json(sh, { header:1, raw:true, defval:'' }) : [];
+        });
+      var live = buildDashboardDataLocal(sheets);
+      var dt   = Math.round(performance.now() - t0);
+      setLocalExcelStatus('ok', '✅ تم تحميل ' + file.name + ' في ' + dt + ' ms — ' +
+        live.kpi.total_beneficiaries + ' مستفيد · ' + live.kpi.total_employees + ' موظف · ' +
+        live.kpi.total_sessions + ' جلسة');
+      applyLiveData(live);
+      setConnectionStatus('ok', '📂 محمَّل من ملف Excel محلي: ' + file.name);
+    } catch(err) {
+      console.error(err);
+      setLocalExcelStatus('error', '❌ فشل القراءة: ' + err.message);
+    }
+  };
+  reader.onerror = function(){ setLocalExcelStatus('error', '❌ تعذّر فتح الملف'); };
+  reader.readAsArrayBuffer(file);
+}
+
+function setLocalExcelStatus(state, msg) {
+  var el = document.getElementById('local-excel-status'); if (!el) return;
+  var col = state==='ok' ? 'var(--emerald-lite)' :
+            state==='error' ? 'var(--rose)' :
+            state==='loading' ? 'var(--amber)' : 'var(--gray-400)';
+  el.style.color = col; el.textContent = msg;
+}
+
+// ============================================================
+// JS port مختصر لـ buildDashboardData من Apps Script
+// ============================================================
+function buildDashboardDataLocal(sheets) {
+  function rowsOf(name) {
+    var raw = sheets[name] || [];
+    if (!raw.length) return [];
+    return raw.slice(1).filter(function(r){
+      var k = r[1];
+      return k!==null && k!==undefined && k!=='' && k!==0 &&
+             !(typeof k==='string' && k.trim()==='');
+    });
+  }
+  var empRows  = rowsOf('الموظفين');
+  var benRows  = rowsOf('المستفيدين');
+  var sesRows  = rowsOf('الجلسات');
+  var absRows  = rowsOf('جدول الغياب');
+  var admRows  = rowsOf('الحالة الإدارية');
+  var finRows  = rowsOf('التحصيل');
+  var diagRows = rowsOf('تشخيص الحالات');
+
+  var centerMap = _buildCenterMap(empRows, benRows);
+  var benIndex  = _buildBenIndex(benRows, centerMap);
+  var empIndex  = _buildEmpIndex(empRows);
+
+  var allData    = _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, {});
+  var filterOpts = _buildFilterOptions(benRows, empRows, sesRows, absRows, finRows, admRows, diagRows);
+  var slices     = _buildSlices(benIndex, empIndex, sesRows, absRows, finRows, filterOpts);
+  var diag       = _calcDiagnoses(diagRows);
+  var adm        = _calcAdmin(admRows);
+  var dates      = _getValidDates(sesRows, finRows, absRows, admRows);
+  var raw        = _buildRawRows(benIndex, empIndex, sesRows, absRows, finRows, admRows, diagRows);
+
+  return {
+    kpi: allData.kpi, employees: allData.employees, beneficiaries: allData.beneficiaries,
+    sessions: allData.sessions, absence: allData.absence, financial: allData.financial,
+    diagnoses: diag, admin: adm, slices: slices, filter_options: filterOpts,
+    valid_dates: dates, center_map: centerMap, raw: raw,
+    generated_at: new Date().toISOString()
+  };
+}
+
+// ----- helpers (مطابقة لما في eradah_apps_script.gs) -----
+function _clean(v){ return v===null||v===undefined?'':String(v).trim(); }
+function _num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+function _inc(o,k){ if(k) o[k]=(o[k]||0)+1; }
+function _uniq(arr){ var s={}; arr.forEach(function(v){ if(v) s[v]=1; }); return Object.keys(s).sort(); }
+function _sortObj(obj){ var s={}; Object.keys(obj).sort().forEach(function(k){ s[k]=obj[k]; }); return s; }
+function _countKeys(o){ return Object.keys(o||{}).length; }
+function _iqGroup(v){
+  if (!v || v<=0) return '';
+  if (v<50) return '25-49 (شديد)';
+  if (v<70) return '50-69 (متوسط)';
+  if (v<85) return '70-84 (خفيف)';
+  return '85+ (حدي)';
+}
+function _toDate(val){
+  if (!val) return null;
+  if (val instanceof Date) return isNaN(val.getTime())?null:val;
+  if (typeof val==='number') return new Date((val-25569)*86400*1000);
+  var d=new Date(val); return isNaN(d.getTime())?null:d;
+}
+function _toDateStr(val){
+  var d=_toDate(val); if(!d) return null;
+  var y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate();
+  if (y<2020||y>2035) return null;
+  return y+'-'+(m<10?'0'+m:''+m)+'-'+(day<10?'0'+day:''+day);
+}
+function _toMonthKey(val){
+  var d=_toDate(val); if(!d) return null;
+  var y=d.getFullYear(), m=d.getMonth()+1;
+  if (y<2020||y>2035) return null;
+  return y+'-'+(m<10?'0'+m:''+m);
+}
+
+function _buildCenterMap(empRows, benRows){
+  var empCenters = _uniq(empRows.map(function(r){ return _clean(r[7]); }));
+  var benCenters = _uniq(benRows.map(function(r){ return _clean(r[5]); }));
+  var map = {};
+  benCenters.forEach(function(bc){
+    if (!bc) return;
+    empCenters.forEach(function(ec){
+      if (!ec) return;
+      if (bc.indexOf('('+ec+')')!==-1 || bc.indexOf(ec)!==-1) map[bc]=ec;
+    });
+  });
+  return map;
+}
+
+function _buildBenIndex(rows, centerMap){
+  var index = {};
+  rows.forEach(function(r){
+    var bid = String(r[1]);
+    var center = _clean(r[5]);
+    var iq = _num(r[9]);
+    index[bid] = {
+      id: bid, center: center, region: centerMap[center]||center,
+      period: _clean(r[6]), gender: _clean(r[3]), program: _clean(r[10]),
+      funding: _clean(r[12]), fees: _num(r[11]), dob: r[4],
+      iq: iq, iq_group: _iqGroup(iq)
+    };
+  });
+  return index;
+}
+
+function _buildEmpIndex(rows){
+  var index = {};
+  rows.forEach(function(r){
+    var eid = _clean(r[1]);
+    index[eid] = {
+      center: _clean(r[7]), period: _clean(r[8]),
+      type: _clean(r[5]), specialty: _clean(r[4]), service: _clean(r[6])
+    };
+  });
+  return index;
+}
+
+function _getValidDates(sesRows, finRows, absRows, admRows){
+  var set={};
+  function add(v){ var s=_toDateStr(v); if(s) set[s]=1; }
+  sesRows.forEach(function(r){ add(r[1]); });
+  finRows.forEach(function(r){ add(r[4]); });
+  absRows.forEach(function(r){ add(r[5]); });
+  admRows.forEach(function(r){ add(r[5]); });
+  var sorted = Object.keys(set).sort();
+  return { dates: sorted, min: sorted[0]||'', max: sorted[sorted.length-1]||'' };
+}
+
+function _calcDiagnoses(rows){
+  var all={}, sev={}, byCenter={};
+  rows.forEach(function(r){
+    _inc(all, _clean(r[3]));
+    _inc(sev, _clean(r[4]));
+    _inc(byCenter, _clean(r[5]));
+  });
+  var top10 = Object.entries(all).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10)
+    .reduce(function(o,e){ o[e[0]]=e[1]; return o; }, {});
+  return { total: rows.length, top10: top10, top_all: all, by_severity: sev, by_center: byCenter };
+}
+
+function _calcAdmin(rows){
+  var s={}, byCenter={};
+  rows.forEach(function(r){
+    _inc(s, _clean(r[6]));
+    _inc(byCenter, _clean(r[4]));
+  });
+  return { total: rows.length, by_status: s, by_center: byCenter };
+}
+
+function _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, filters){
+  var cF = filters.center||'', pF = filters.period||'',
+      gF = filters.gender||'', mF = filters.program||'';
+  // "كلاهما" تعني عدم تطبيق فلتر فترة فعلي
+  if (pF==='كلاهما') pF = '';
+
+  var bens = Object.keys(benIndex).filter(function(bid){
+    var b = benIndex[bid];
+    if (cF && b.center!==cF && b.region!==cF) return false;
+    if (pF && b.period!==pF && b.period!=='كلاهما') return false;
+    if (gF && b.gender!==gF) return false;
+    if (mF && b.program!==mF) return false;
+    return true;
+  });
+  var benSet = {}; bens.forEach(function(id){ benSet[id]=1; });
+
+  var emps = Object.keys(empIndex).filter(function(eid){
+    var e = empIndex[eid];
+    if (cF && e.center!==cF) return false;
+    if (pF && e.period!==pF) return false;
+    return true;
+  });
+  var empSet = {}; emps.forEach(function(id){ empSet[id]=1; });
+
+  // فلترة بحسب المركز الحقيقي للسجل في كل ورقة (المركز أصبح موجوداً في كل شيت)
+  var ses  = sesRows.filter(function(r){
+    if (cF && _clean(r[6])!==cF) return false;
+    if (pF && _clean(r[9]) && _clean(r[9])!==pF) return false;
+    return benSet[String(r[2])] || empSet[_clean(r[4])];
+  });
+  var abss = absRows.filter(function(r){
+    if (cF && _clean(r[4])!==cF) return false;
+    if (pF && _clean(r[7]) && _clean(r[7])!==pF) return false;
+    return benSet[String(r[2])] || empSet[_clean(r[2])];
+  });
+  var fins = finRows.filter(function(r){
+    if (cF && _clean(r[3])!==cF) return false;
+    return benSet[String(r[1])];
+  });
+
+  var benData = bens.map(function(id){ return benIndex[id]; });
+  var empData = emps.map(function(id){ return empIndex[id]; });
+
+  var totalFees=0, totalCol=0;
+  benData.forEach(function(b){ totalFees+=b.fees; });
+  fins.forEach(function(r){ totalCol+=_num(r[5]); });
+
+  var sesByStatus={}, sesByType={}, sesByService={}, sesByPeriod={}, sesMonthly={};
+  ses.forEach(function(r){
+    _inc(sesByStatus,  _clean(r[10]));
+    _inc(sesByType,    _clean(r[7]));
+    _inc(sesByService, _clean(r[8]));
+    _inc(sesByPeriod,  _clean(r[9]));
+    var mk=_toMonthKey(r[1]); if(mk) sesMonthly[mk]=(sesMonthly[mk]||0)+1;
+  });
+
+  var benByGender={}, benByCenter={}, benByProgram={}, benByFunding={};
+  var benByAge={}, benByIQ={}, benByPeriod={};
+  benData.forEach(function(b){
+    _inc(benByGender,  b.gender);
+    _inc(benByCenter,  b.center);
+    _inc(benByProgram, b.program);
+    _inc(benByFunding, b.funding);
+    _inc(benByPeriod,  b.period);
+    var dob=_toDate(b.dob);
+    if (dob){
+      var a=Math.floor((new Date()-dob)/(365.25*864e5));
+      var ag=a<6?'أقل من 6':a<12?'6-12':a<18?'12-18':'18+';
+      benByAge[ag]=(benByAge[ag]||0)+1;
+    }
+    if (b.iq_group) benByIQ[b.iq_group]=(benByIQ[b.iq_group]||0)+1;
+  });
+
+  var empByType={}, empBySpec={}, empByCenter={}, empByPeriod={}, empByService={};
+  empData.forEach(function(e){
+    _inc(empByType,    e.type);
+    _inc(empBySpec,    e.specialty);
+    _inc(empByCenter,  e.center);
+    _inc(empByPeriod,  e.period);
+    _inc(empByService, e.service);
+  });
+
+  var absByWho={}, absByReason={}, absMonthly={};
+  abss.forEach(function(r){
+    _inc(absByWho,    _clean(r[1]));
+    _inc(absByReason, _clean(r[6]));
+    var mk=_toMonthKey(r[5]); if(mk) absMonthly[mk]=(absMonthly[mk]||0)+1;
+  });
+
+  var finByType={}, finMonthly={};
+  fins.forEach(function(r){
+    _inc(finByType, _clean(r[6]));
+    var mk=_toMonthKey(r[4]); if(mk) finMonthly[mk]=(finMonthly[mk]||0)+_num(r[5]);
+  });
+
+  var empSesCount={};
+  ses.forEach(function(r){ var n=_clean(r[5]); if(n) empSesCount[n]=(empSesCount[n]||0)+1; });
+  var top5 = Object.entries(empSesCount).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
+
+  return {
+    kpi: {
+      total_beneficiaries: bens.length, total_employees: emps.length,
+      total_sessions:    ses.length,
+      completed_sessions: sesByStatus['تمت']||0,
+      cancelled_sessions: sesByStatus['ملغاة']||0,
+      postponed_sessions: sesByStatus['مؤجلة']||0,
+      notdone_sessions:   sesByStatus['لم تتم']||0,
+      total_absence:      abss.length,
+      total_collection:   Math.round(totalCol),
+      total_fees_expected:Math.round(totalFees),
+      num_centers:        _countKeys(empByCenter)||_countKeys(benByCenter)
+    },
+    employees: { total: emps.length, by_type: empByType, by_specialty: empBySpec,
+      by_center: empByCenter, by_period: empByPeriod, by_service: empByService, top_by_sessions: top5 },
+    beneficiaries: { total: bens.length, total_fees: Math.round(totalFees),
+      by_gender: benByGender, by_center: benByCenter, by_program: benByProgram,
+      by_funding: benByFunding, by_age: benByAge, by_iq: benByIQ, by_period: benByPeriod },
+    sessions: { total: ses.length, by_status: sesByStatus, by_type: sesByType,
+      by_service: sesByService, by_period: sesByPeriod, monthly: _sortObj(sesMonthly) },
+    absence:  { total: abss.length, by_who: absByWho, by_reason: absByReason, monthly: _sortObj(absMonthly) },
+    financial:{ total: Math.round(totalCol), count: fins.length, by_type: finByType, monthly: _sortObj(finMonthly) }
+  };
+}
+
+function _buildSlices(benIndex, empIndex, sesRows, absRows, finRows, filterOpts){
+  var slices = {};
+  slices['__all__'] = _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, {});
+  (filterOpts.centers||[]).forEach(function(center){
+    slices['c:'+center] = _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, {center:center});
+    (filterOpts.periods||[]).forEach(function(period){
+      slices['c:'+center+'|p:'+period] = _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, {center:center, period:period});
+    });
+  });
+  (filterOpts.periods||[]).forEach(function(period){
+    slices['p:'+period] = _calcSlice(benIndex, empIndex, sesRows, absRows, finRows, {period:period});
+  });
+  return slices;
+}
+
+function _buildFilterOptions(benRows, empRows, sesRows, absRows, finRows, admRows, diagRows){
+  var benCenters  = _uniq(benRows.map(function(r){ return _clean(r[5]); }));
+  var empCenters  = _uniq(empRows.map(function(r){ return _clean(r[7]); }));
+  var sesCenters  = _uniq(sesRows.map(function(r){ return _clean(r[6]); }));
+  var absCenters  = _uniq(absRows.map(function(r){ return _clean(r[4]); }));
+  var admCenters  = _uniq(admRows.map(function(r){ return _clean(r[4]); }));
+  var finCenters  = _uniq(finRows.map(function(r){ return _clean(r[3]); }));
+  var diagCenters = _uniq(diagRows.map(function(r){ return _clean(r[5]); }));
+  var allCenters  = _uniq(benCenters.concat(empCenters, sesCenters, absCenters, admCenters, finCenters, diagCenters)).filter(Boolean);
+  var diagCount = {};
+  diagRows.forEach(function(r){ _inc(diagCount,_clean(r[3])); });
+  var topDiag = Object.entries(diagCount).sort(function(a,b){ return b[1]-a[1]; }).slice(0,20).map(function(e){ return e[0]; });
+  var allPeriods = _uniq(
+    empRows.map(function(r){ return _clean(r[8]); })
+      .concat(benRows.map(function(r){ return _clean(r[6]); }))
+      .concat(sesRows.map(function(r){ return _clean(r[9]); }))
+      .concat(absRows.map(function(r){ return _clean(r[7]); }))
+  ).filter(Boolean);
+  if (allPeriods.indexOf('كلاهما')===-1) allPeriods.push('كلاهما');
+  return {
+    centers: allCenters, ben_centers: benCenters, emp_centers: empCenters,
+    periods: allPeriods,
+    emp_types:   _uniq(empRows.map(function(r){ return _clean(r[5]); }).filter(Boolean)),
+    specialties: _uniq(empRows.map(function(r){ return _clean(r[4]); }).filter(Boolean)),
+    services:    _uniq(sesRows.map(function(r){ return _clean(r[8]); }).filter(Boolean)),
+    sess_types:  _uniq(sesRows.map(function(r){ return _clean(r[7]); }).filter(Boolean)),
+    sess_status: _uniq(sesRows.map(function(r){ return _clean(r[10]); }).filter(Boolean)),
+    genders:     _uniq(benRows.map(function(r){ return _clean(r[3]); }).filter(Boolean)),
+    programs:    _uniq(benRows.map(function(r){ return _clean(r[10]); }).filter(Boolean)),
+    fundings:    _uniq(benRows.map(function(r){ return _clean(r[12]); }).filter(Boolean)),
+    abs_who:     _uniq(absRows.map(function(r){ return _clean(r[1]); }).filter(Boolean)),
+    abs_reasons: _uniq(absRows.map(function(r){ return _clean(r[6]); }).filter(Boolean)),
+    adm_status:  _uniq(admRows.map(function(r){ return _clean(r[6]); }).filter(Boolean)),
+    fin_types:   _uniq(finRows.map(function(r){ return _clean(r[6]); }).filter(Boolean)),
+    diagnoses:   topDiag
+  };
+}
+
+function _buildRawRows(benIndex, empIndex, sesRows, absRows, finRows, admRows, diagRows){
+  var bens = Object.keys(benIndex).map(function(id){
+    var b = benIndex[id];
+    return { id:b.id, center:b.center, region:b.region, period:b.period,
+      gender:b.gender, program:b.program, funding:b.funding,
+      fees:b.fees, iq:b.iq, iq_group:b.iq_group, dob:_toDateStr(b.dob) };
+  });
+  var emps = Object.keys(empIndex).map(function(id){
+    var e = empIndex[id];
+    return { id:id, center:e.center, period:e.period, type:e.type, specialty:e.specialty, service:e.service };
+  });
+  var sessions = sesRows.map(function(r){
+    var bid = String(r[2]); var eid = _clean(r[4]);
+    var b = benIndex[bid]||{}; var e = empIndex[eid]||{};
+    var rowCenter = _clean(r[6]);
+    return { date:_toDateStr(r[1]), bid:bid, eid:eid, type:_clean(r[7]),
+      service:_clean(r[8]), period:_clean(r[9])||b.period||e.period||'', status:_clean(r[10]),
+      center: rowCenter || b.center || e.center || '',
+      region: rowCenter || b.region || e.center || '',
+      gender:b.gender||'', program:b.program||'' };
+  });
+  var financial = finRows.map(function(r){
+    var bid = String(r[1]); var b = benIndex[bid]||{};
+    var rowCenter = _clean(r[3]);
+    return { date:_toDateStr(r[4]), bid:bid, amount:_num(r[5]), type:_clean(r[6]),
+      center: rowCenter || b.center || '',
+      period:b.period||'', gender:b.gender||'',
+      program:b.program||'', funding:b.funding||'' };
+  });
+  var absence = absRows.map(function(r){
+    var who = _clean(r[1]); var key = String(r[2]);
+    var ref = (who==='موظف') ? (empIndex[_clean(r[2])]||{}) : (benIndex[key]||{});
+    var rowCenter = _clean(r[4]);
+    return { who:who, ref_id:key, date:_toDateStr(r[5]), reason:_clean(r[6]),
+      period:_clean(r[7])||ref.period||'',
+      center: rowCenter || ref.center || '' };
+  });
+  var admin = admRows.map(function(r){
+    var who = _clean(r[1]); var key = String(r[2]);
+    var ref = (who==='موظف') ? (empIndex[_clean(r[2])]||{}) : (benIndex[key]||{});
+    var rowCenter = _clean(r[4]);
+    return { who:who, ref_id:key, date:_toDateStr(r[5]), status:_clean(r[6]),
+      center: rowCenter || ref.center || '' };
+  });
+  var diagnoses = diagRows.map(function(r){
+    var bid = String(r[1]); var b = benIndex[bid]||{};
+    var rowCenter = _clean(r[5]);
+    return { bid:bid, diag:_clean(r[3]), severity:_clean(r[4]),
+      center: rowCenter || b.center || '',
+      period:b.period||'', gender:b.gender||'', program:b.program||'' };
+  });
+  return { bens:bens, emps:emps, sessions:sessions, financial:financial,
+    absence:absence, admin:admin, diagnoses:diagnoses };
+}
+
+// ============================================================
+// APPLY LIVE DATA — تطبيق البيانات الحية من Sheets
+// ============================================================
+function applyLiveData(live) {
+  if (!live) return;
+  console.log('📊 Sheets data received:', live.kpi);
+
+  // استبدال البيانات كاملاً
+  if (live.kpi)           DATA.kpi           = live.kpi;
+  if (live.employees)     DATA.employees     = live.employees;
+  if (live.beneficiaries) DATA.beneficiaries = live.beneficiaries;
+  if (live.sessions)      DATA.sessions      = live.sessions;
+  if (live.absence)       DATA.absence       = live.absence;
+  if (live.admin)         DATA.admin         = live.admin;
+  if (live.financial)     DATA.financial     = live.financial;
+  if (live.diagnoses)     DATA.diagnoses     = live.diagnoses;
+  if (live.by_center)     BY_CENTER_DATA     = live.by_center || {};
+  if (live.slices)        SLICES_DATA        = live.slices || {};
+  if (live.center_map)    CENTER_MAP         = live.center_map || {};
+  if (live.raw)           RAW_DATA           = live.raw || RAW_DATA;
+  if (live.valid_dates)   updateCalendarDates(live.valid_dates);
+  if (live.filter_options) buildPageFilters(live.filter_options);
+
+  var kpi = DATA.kpi;
+
+  // تحديث KPI cards
+  function animN(sel, val, fmt) {
+    var el = document.querySelector(sel); if(!el) return;
+    var tgt=parseFloat(val)||0, cur=0, step=Math.max(1,Math.ceil(tgt/50));
+    var t=setInterval(function(){
+      cur=Math.min(cur+step,tgt);
+      el.textContent=fmt?fmt(cur):Math.round(cur).toLocaleString('ar-SA');
+      if(cur>=tgt)clearInterval(t);
+    },16);
+  }
+  function setSub(sel,txt){var e=document.querySelector(sel);if(e)e.textContent=txt;}
+
+  animN('#page-overview .kpi-card.blue   .kpi-value', kpi.total_beneficiaries);
+  animN('#page-overview .kpi-card.green  .kpi-value', kpi.total_employees);
+  animN('#page-overview .kpi-card.amber  .kpi-value', kpi.total_sessions);
+  animN('#page-overview .kpi-card.rose   .kpi-value', kpi.total_absence);
+  animN('#page-overview .kpi-card.sky    .kpi-value', kpi.num_centers);
+  animN('#kpi-collection', kpi.total_collection, function(v){return (v/1000).toFixed(1)+'K';});
+
+  // KPI sub-texts
+  var empType = (DATA.employees&&DATA.employees.by_type)||{};
+  setSub('#page-overview .kpi-card.green .kpi-sub',
+    Object.entries(empType).map(function(e){return e[1]+' '+e[0];}).join(' · '));
+  var benG = (DATA.beneficiaries&&DATA.beneficiaries.by_gender)||{};
+  setSub('#page-overview .kpi-card.blue .kpi-sub',
+    Object.entries(benG).map(function(e){return e[1]+' '+e[0];}).join(' · '));
+  if(kpi.total_sessions>0){
+    var pct=((kpi.completed_sessions||0)/kpi.total_sessions*100).toFixed(1);
+    setSub('#page-overview .kpi-card.amber .kpi-sub',(kpi.completed_sessions||0)+' مكتملة ('+pct+'%)');
+  }
+  var absW=(DATA.absence&&DATA.absence.by_who)||{};
+  setSub('#page-overview .kpi-card.rose .kpi-sub',
+    Object.entries(absW).map(function(e){return e[1]+' '+e[0];}).join(' · '));
+  if(kpi.total_fees_expected>0){
+    var cp=((kpi.total_collection||0)/kpi.total_fees_expected*100).toFixed(1);
+    setSub('#page-overview .kpi-card.purple .kpi-sub',cp+'% من المستهدف '+((kpi.total_fees_expected||0)/1000).toFixed(0)+'K');
+  }
+  setSub('#page-overview .kpi-card.sky .kpi-sub',
+    Object.keys((DATA.employees&&DATA.employees.by_center)||{}).join(' · '));
+
+  // stat-mini الموظفين
+  var fni=(empType['فني']||empType['أخصائي']||0), adm2=(empType['إداري']||0);
+  var eM=document.querySelectorAll('#page-employees .stat-mini-val');
+  if(eM[0])eM[0].textContent=(kpi.total_employees||0).toLocaleString('ar-SA');
+  if(eM[1])eM[1].textContent=fni;
+  if(eM[2])eM[2].textContent=adm2;
+  if(eM[3])eM[3].textContent=kpi.total_sessions>0?Math.round(kpi.total_sessions/Math.max(kpi.total_employees,1)):0;
+
+  // stat-mini المستفيدين
+  var bM=document.querySelectorAll('#page-beneficiaries .stat-mini-val');
+  if(bM[0])bM[0].textContent=(kpi.total_beneficiaries||0).toLocaleString('ar-SA');
+  if(bM[1])bM[1].textContent=benG['أنثى']||0;
+  if(bM[2])bM[2].textContent=benG['ذكر'] ||0;
+
+  // stat-mini الجلسات
+  var sM=document.querySelectorAll('#page-sessions .stat-mini-val');
+  if(sM[0])sM[0].textContent=(kpi.completed_sessions||0).toLocaleString('ar-SA');
+  if(sM[1])sM[1].textContent=(kpi.cancelled_sessions||0).toLocaleString('ar-SA');
+  if(sM[2])sM[2].textContent=(kpi.postponed_sessions||0).toLocaleString('ar-SA');
+  if(sM[3])sM[3].textContent=(kpi.notdone_sessions||0).toLocaleString('ar-SA');
+  var sT=(DATA.sessions&&DATA.sessions.by_type)||{};
+  if(sM[4])sM[4].textContent=sT['جلسة']||0;
+  if(sM[5])sM[5].textContent=sT['خدمة']||0;
+
+  // stat-mini الغياب
+  var aW=(DATA.absence&&DATA.absence.by_who)||{};
+  var aM=document.querySelectorAll('#page-absence .stat-mini-val');
+  if(aM[0])aM[0].textContent=(kpi.total_absence||0).toLocaleString('ar-SA');
+  if(aM[1])aM[1].textContent=aW['مستفيد']||0;
+  if(aM[2])aM[2].textContent=aW['موظف']  ||0;
+
+  // KPI التحصيل المالي
+  animN('#page-financial .kpi-card.purple .kpi-value', kpi.total_collection,    function(v){return (v/1000).toFixed(1)+'K';});
+  animN('#page-financial .kpi-card.blue   .kpi-value', kpi.total_fees_expected, function(v){return (v/1000).toFixed(0)+'K';});
+  if(kpi.total_fees_expected>0){
+    var pf=((kpi.total_collection||0)/kpi.total_fees_expected*100).toFixed(1);
+    var ef=document.querySelector('#page-financial .kpi-card.rose .kpi-value');
+    if(ef)ef.textContent=pf+'%';
+  }
+  var fT=(DATA.financial&&DATA.financial.by_type)||{};
+  animN('#page-financial .kpi-card.amber .kpi-value', fT['اعفاء']||0);
+
+  // legend فني/إداري
+  var empLeg=document.querySelector('#page-employees .donut-legend');
+  if(empLeg){
+    var tot=Math.max(fni+adm2,1);
+    empLeg.innerHTML=
+      '<div class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span><span class="legend-name">فنيون</span><span class="legend-val">'+fni+' ('+Math.round(fni/tot*100)+'%)</span></div>'+
+      '<div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span><span class="legend-name">إداريون</span><span class="legend-val">'+adm2+' ('+Math.round(adm2/tot*100)+'%)</span></div>';
+  }
+
+  // gauge مالي
+  if(kpi.total_fees_expected>0)
+    drawGauge('chart-fin-gauge',Math.min(Math.round((kpi.total_collection||0)/kpi.total_fees_expected*100),100));
+
+  updateSidebarBadges(live);
+  updateAllChartsLive();
+  rebuildDynamicTables();
+
+  // الرؤى التنفيذية + لوحة مقارنة المراكز (على البيانات الكاملة)
+  try { refreshExecutiveInsights(null); }
+  catch(e) { console.warn('refreshExecutiveInsights (live):', e.message); }
+
+  // إن وُجدت فلاتر نشطة — أعد تطبيقها على البيانات الحديثة
+  if (typeof hasActiveFilters === 'function' && hasActiveFilters()) {
+    try { executeFilter(); } catch(e) { console.warn('re-execute filter:', e.message); }
+  }
+
+  console.log('✅ Dashboard updated | مستفيدين:',kpi.total_beneficiaries,'| موظفين:',kpi.total_employees,'| جلسات:',kpi.total_sessions);
+}
+
+// ============================================================
+// RENDER PAGE FILTERS — عرض فلاتر الصفحة الحالية
+// ============================================================
+function renderPageFilters(pageId) {
+  var row = document.getElementById('extraFiltersRow');
+  if (!row) return;
+  var config = PAGE_FILTERS[pageId];
+  if (!config || !config.filters || config.filters.length === 0) {
+    row.style.display = 'none'; return;
+  }
+  row.style.display = 'flex';
+  var savedVals = {};
+  row.querySelectorAll('select[id]').forEach(function(s){ savedVals[s.id]=s.value; });
+
+  var h = '<span class="extra-filter-label"><i class="fas fa-sliders-h" style="margin-left:6px;color:var(--indigo-lite)"></i>فلاتر '+config.label+':</span>';
+  config.filters.forEach(function(f) {
+    var saved = savedVals[f.id] || '';
+    h += '<select class="filter-select" id="'+f.id+'" onchange="applyFilter()" title="'+f.label+'">';
+    h += '<option value="">'+f.icon+' '+f.label+'</option>';
+    (f.options||[]).forEach(function(o){ h += '<option value="'+o+'"'+(saved===o?' selected':'')+'>'+o+'</option>'; });
+    h += '</select>';
+  });
+  h += '<div style="flex:1"></div>';
+  h += '<button class="filter-apply-btn" onclick="applyFilter()"><i class="fas fa-filter"></i> تطبيق</button>';
+  h += '<button class="filter-reset-btn" onclick="resetFilters()"><i class="fas fa-undo"></i> إعادة تعيين</button>';
+  row.innerHTML = h;
+  row.style.opacity='0';
+  requestAnimationFrame(function(){ row.style.transition='opacity 0.25s'; row.style.opacity='1'; });
+}
+
+// ============================================================
+// UPDATE ALL CHARTS LIVE — تحديث مباشر
+// ============================================================
+function updateAllChartsLive() {
+  function upd(id, dataObj) {
+    var el=document.getElementById(id); if(!el) return;
+    var ch=Chart.getChart(el); if(!ch||!dataObj) return;
+    var keys=Object.keys(dataObj), vals=Object.values(dataObj);
+    if(!keys.length) return;
+    ch.data.labels=keys; ch.data.datasets[0].data=vals; ch.update('none');
+  }
+  var S=DATA.sessions||{}, F=DATA.financial||{}, AB=DATA.absence||{};
+  var EM=DATA.employees||{}, BE=DATA.beneficiaries||{};
+  var sm=S.monthly||{}, fm=F.monthly||{}, am=AB.monthly||{};
+  var smK=Object.keys(sm).slice(-14), smV=smK.map(function(k){return sm[k];});
+
+  upd('chart-sessions-monthly',  Object.fromEntries(smK.map(function(k,i){return [k,smV[i]];})));
+  upd('chart-sessions-detail',   Object.fromEntries(smK.map(function(k,i){return [k,smV[i]];})));
+  upd('chart-sessions-status',   S.by_status||{});
+  upd('chart-services',          S.by_service||{});
+  upd('chart-sess-type',         S.by_type||{});
+  upd('chart-financial-monthly', fm);
+  upd('chart-fin-monthly',       fm);
+  upd('chart-absence-monthly',   am);
+  upd('chart-absence-reasons',   AB.by_reason||{});
+  upd('chart-bene-gender',       BE.by_gender||{});
+  upd('chart-programs',          BE.by_program||{});
+  upd('chart-funding',           BE.by_funding||{});
+  upd('chart-bene-age',          BE.by_age||{});
+  upd('chart-bene-iq',           BE.by_iq||{});
+  upd('chart-bene-centers',      BE.by_center||{});
+  upd('chart-emp-centers',       EM.by_center||{});
+  upd('chart-emp-type',          EM.by_type||{});
+  upd('chart-emp-specialty',     EM.by_specialty||{});
+  upd('chart-emp-specialty2',    EM.by_specialty||{});
+  upd('chart-admin-status',      (DATA.admin||{}).by_status||{});
+  upd('chart-diagnoses',         (DATA.diagnoses||{}).top10||{});
+  upd('chart-centers-overview',  EM.by_center||{});
+
+  // legend جلسات
+  var legEl=document.getElementById('legend-sessions-status');
+  if(legEl){
+    var cols=['#10b981','#f43f5e','#f59e0b','#0ea5e9'];
+    var keys=Object.keys(S.by_status||{}), vals=Object.values(S.by_status||{});
+    legEl.innerHTML=keys.map(function(k,i){
+      return '<div class="legend-item"><span class="legend-dot" style="background:'+(cols[i]||'#94a3b8')+'"></span>'+
+             '<span class="legend-name">'+k+'</span><span class="legend-val">'+vals[i]+'</span></div>';
+    }).join('');
+  }
+  // gauge مالي
+  if((DATA.kpi.total_fees_expected||0)>0)
+    drawGauge('chart-fin-gauge',Math.min(Math.round((DATA.kpi.total_collection||0)/DATA.kpi.total_fees_expected*100),100));
+}
 
 // ============================================================
 // TIMESTAMP
@@ -3187,10 +4808,11 @@ document.getElementById('last-update-time').textContent =
 // BOOT
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
+  buildPageFilters(DEFAULT_FILTER_OPTIONS);
   initAllCharts();
   animateCounters();
   renderPageFilters('overview');
-  initSheetConnector();
+  setConnectionStatus('idle', 'في انتظار تحميل ملف Excel محلي');
 });
 </script>
 </body>
