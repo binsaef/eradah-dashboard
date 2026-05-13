@@ -1866,13 +1866,25 @@ body {
         </p>
       </div>
 
+      <!-- Bundled file note -->
+      <div class="chart-card" style="margin-bottom:20px">
+        <div class="chart-header"><div><div class="chart-title">📦 الملف المرفق مع اللوحة (تحميل تلقائي)</div></div></div>
+        <ul style="font-size:13px;color:var(--gray-300);line-height:1.9;padding-right:20px;margin:6px 0">
+          <li>عند فتح اللوحة، تُحاول تلقائي<|im_start|>فع تحميل ملف Excel من المستودع بأحد هذه الأسماء:
+            <code>data.xlsx</code> ، <code>eradah_data.xlsx</code> ، <code>مسودة الجداول.xlsx</code>.</li>
+          <li>ضع الملف بجوار <code>eradah_dashboard.html</code> داخل نفس الـ repo على GitHub، وستعمل اللوحة لكل المستخدمين بدون أي تحميل يدوي.</li>
+          <li>للتحديث: عدّل الملف وارفعه على GitHub (commit) — سيتحدّث للجميع تلقائي<|im_start|>فع.</li>
+          <li>يمكن دائم<|im_start|>فع رفع ملف بديل من جهازك من الحقل أعلاه — يستبدل الملف المرفق مؤقت<|im_start|>فع.</li>
+        </ul>
+      </div>
+
       <!-- Privacy / Data flow note -->
       <div class="chart-card" style="margin-bottom:20px">
         <div class="chart-header"><div><div class="chart-title">🔒 الخصوصية ومسار البيانات</div></div></div>
         <ul style="font-size:13px;color:var(--gray-300);line-height:1.9;padding-right:20px;margin:6px 0">
           <li>تُقرأ بيانات الملف داخل المتصفح فقط (عبر مكتبة <code>SheetJS</code>) — لا يُرفع شيء إلى أي خادم.</li>
           <li>يُعاد بناء كل المؤشرات والشرائح والرسوم محلياً عند كل تحميل.</li>
-          <li>لتحديث البيانات: عدّل الملف ثم أعِد رفعه من نفس الحقل أعلاه.</li>
+          <li><strong>تنبيه:</strong> أي ملف ترفعه إلى repo عام يصبح متاح<|im_start|>فع لأي شخص — استخدم repo <em>Private</em> إن كانت البيانات حساسة.</li>
         </ul>
       </div>
 
@@ -4152,9 +4164,35 @@ function setConnectionStatus(state, msg) {
 
 
 // ============================================================
-// LOCAL EXCEL LOADER — قراءة ملف .xlsx مباشرة في المتصفح (وضع الاختبار)
-// يحاكي نفس منطق eradah_apps_script.gs دون الحاجة لـ Google Sheets
+// LOCAL EXCEL LOADER — قراءة ملف .xlsx من جهاز المستخدم أو من المستودع
 // ============================================================
+
+// قائمة المسارات التي يُجرَّب تحميلها تلقائياً عند فتح اللوحة
+// ضع ملف Excel في نفس مجلد eradah_dashboard.html بأحد هذه الأسماء
+var BUNDLED_EXCEL_CANDIDATES = [
+  'data.xlsx',
+  'eradah_data.xlsx',
+  'مسودة الجداول.xlsx'
+];
+
+function _processExcelArrayBuffer(buf, sourceLabel) {
+  var t0 = performance.now();
+  var wb = XLSX.read(new Uint8Array(buf), { type:'array', cellDates:true });
+  var sheets = {};
+  ['الموظفين','المستفيدين','الجلسات','جدول الغياب','الحالة الإدارية','التحصيل','تشخيص الحالات']
+    .forEach(function(name){
+      var sh = wb.Sheets[name];
+      sheets[name] = sh ? XLSX.utils.sheet_to_json(sh, { header:1, raw:true, defval:'' }) : [];
+    });
+  var live = buildDashboardDataLocal(sheets);
+  var dt   = Math.round(performance.now() - t0);
+  setLocalExcelStatus('ok', '✅ تم تحميل ' + sourceLabel + ' في ' + dt + ' ms — ' +
+    live.kpi.total_beneficiaries + ' مستفيد · ' + live.kpi.total_employees + ' موظف · ' +
+    live.kpi.total_sessions + ' جلسة');
+  applyLiveData(live);
+  setConnectionStatus('ok', '📂 ' + sourceLabel);
+}
+
 function loadFromLocalExcel(file) {
   if (!file) return;
   if (typeof XLSX === 'undefined') {
@@ -4164,29 +4202,39 @@ function loadFromLocalExcel(file) {
   setLocalExcelStatus('loading', 'جارٍ قراءة الملف "' + file.name + '" …');
   var reader = new FileReader();
   reader.onload = function(ev) {
-    try {
-      var t0 = performance.now();
-      var wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array', cellDates:true });
-      var sheets = {};
-      ['الموظفين','المستفيدين','الجلسات','جدول الغياب','الحالة الإدارية','التحصيل','تشخيص الحالات']
-        .forEach(function(name){
-          var sh = wb.Sheets[name];
-          sheets[name] = sh ? XLSX.utils.sheet_to_json(sh, { header:1, raw:true, defval:'' }) : [];
-        });
-      var live = buildDashboardDataLocal(sheets);
-      var dt   = Math.round(performance.now() - t0);
-      setLocalExcelStatus('ok', '✅ تم تحميل ' + file.name + ' في ' + dt + ' ms — ' +
-        live.kpi.total_beneficiaries + ' مستفيد · ' + live.kpi.total_employees + ' موظف · ' +
-        live.kpi.total_sessions + ' جلسة');
-      applyLiveData(live);
-      setConnectionStatus('ok', '📂 محمَّل من ملف Excel محلي: ' + file.name);
-    } catch(err) {
+    try { _processExcelArrayBuffer(ev.target.result, 'محمَّل من جهازك: ' + file.name); }
+    catch(err) {
       console.error(err);
       setLocalExcelStatus('error', '❌ فشل القراءة: ' + err.message);
     }
   };
   reader.onerror = function(){ setLocalExcelStatus('error', '❌ تعذّر فتح الملف'); };
   reader.readAsArrayBuffer(file);
+}
+
+// محاولة تحميل ملف Excel مرفق مع المستودع (بجوار eradah_dashboard.html)
+async function loadBundledExcel() {
+  if (typeof XLSX === 'undefined') return false;
+  for (var i=0; i<BUNDLED_EXCEL_CANDIDATES.length; i++) {
+    var name = BUNDLED_EXCEL_CANDIDATES[i];
+    var url  = encodeURI(name) + '?_t=' + Date.now();
+    setLocalExcelStatus('loading', 'جارٍ محاولة تحميل "' + name + '" من المستودع…');
+    try {
+      var res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) continue;
+      var ct = (res.headers.get('content-type')||'').toLowerCase();
+      // GitHub Pages يرجع 404 كـ HTML 200 أحيان<|im_start|>فع، نتأكد من النوع
+      if (ct.indexOf('html') !== -1) continue;
+      var buf = await res.arrayBuffer();
+      if (!buf || buf.byteLength < 1000) continue;
+      _processExcelArrayBuffer(buf, 'الملف المرفق مع اللوحة: ' + name);
+      return true;
+    } catch(e) {
+      // جرّب الاسم التالي
+    }
+  }
+  setLocalExcelStatus('idle', 'لم يُحمَّل أي ملف بعد — اختر ملف Excel من جهازك');
+  return false;
 }
 
 function setLocalExcelStatus(state, msg) {
@@ -4813,6 +4861,10 @@ window.addEventListener('DOMContentLoaded', () => {
   animateCounters();
   renderPageFilters('overview');
   setConnectionStatus('idle', 'في انتظار تحميل ملف Excel محلي');
+  // محاولة تحميل ملف Excel المرفق مع المستودع تلقائياً
+  if (typeof loadBundledExcel === 'function') {
+    loadBundledExcel().catch(function(e){ console.warn('bundled load failed:', e); });
+  }
 });
 </script>
 </body>
